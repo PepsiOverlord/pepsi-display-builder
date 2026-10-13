@@ -14,6 +14,7 @@
 .left,.right{background:#fff;padding:12px}.left{border-right:1px solid #ddd}.right{border-left:1px solid #ddd}
 h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14px}
 .prod{width:100%;text-align:left;padding:9px;margin-bottom:6px;border:1px solid #ddd;border-radius:7px;background:#fff;font-weight:700;cursor:pointer}
+.product-group{margin:0 0 7px;border:1px solid #dce1e8;border-radius:8px;overflow:hidden;background:#fff}.product-group summary{padding:10px 8px;font-size:12px;font-weight:800;cursor:pointer;background:#f4f6f9;list-style:none;display:flex;align-items:center;justify-content:space-between}.product-group summary::-webkit-details-marker{display:none}.product-group summary:after{content:"▸";font-size:13px}.product-group[open] summary:after{content:"▾"}.product-group-items{padding:7px}.product-group .prod{font-size:11px;padding:7px 5px;margin-bottom:4px}.product-group .prod:last-child{margin-bottom:0}.product-group[hidden],.prod[hidden]{display:none!important}
 .prod.active{outline:2px solid #111}.prod:before{content:"";display:inline-block;width:6px;height:22px;border-radius:4px;vertical-align:middle;margin-right:8px;background:var(--c)}
 .main{padding:12px}.toolbar{display:flex;gap:7px;margin-bottom:10px}.toolbar button{padding:7px 12px;border:1px solid #ccc;background:#fff;border-radius:5px;cursor:pointer}.toolbar .active{background:#111;color:#fff}
 .stage{position:relative;height:520px;background:#fff;border:1px solid #ddd;border-radius:12px;overflow:auto}.stage-title{padding:15px;font-weight:700;font-size:12px}
@@ -116,8 +117,51 @@ const TWELVEPACK_HEIGHT_INCHES=5;
 const SIXPK_PRODUCTS=new Set(["pepsi","diet-pepsi","mtn-dew","diet-mtn-dew","dr-pepper","diet-dr-pepper"]);
 let selectedProduct="pepsi", selectedIndex=-1, stacks=[], currentView="front";
 const $=id=>document.getElementById(id), products=$("products"), ps=$("productSelect");
-PRODUCTS.forEach(p=>{let b=document.createElement("button");b.className="prod";b.style.setProperty("--c",p.color);b.textContent=p.name;b.onclick=()=>{selectedProduct=p.id;syncButtons();if(currentView==="back"){$("backProduct").value=p.id;if(selectedIndex>=0){const s=stacks[selectedIndex];s.backEnabled=true;s.backProduct=p.id;$("backEnabled").checked=true;toggleBackFields();render();}}else{ps.value=p.id;if(selectedIndex>=0){stacks[selectedIndex].product=p.id;render();}}};products.appendChild(b);let o=document.createElement("option");o.value=p.id;o.textContent=p.name;ps.appendChild(o);let bo=document.createElement("option");bo.value=p.id;bo.textContent=p.name;$("backProduct").appendChild(bo)});
-function syncButtons(){[...products.children].forEach((b,i)=>b.classList.toggle("active",PRODUCTS[i].id===selectedProduct))}
+// Organize the sidebar by parent brand without changing product IDs or assets.
+const PRODUCT_GROUPS=[
+ {name:"Pepsi",prefix:"pepsi",matches:p=>p.id.includes("pepsi")},
+ {name:"Mountain Dew",prefix:"dew",matches:p=>p.id.includes("mtn-dew")},
+ {name:"Dr Pepper",prefix:"drpepper",matches:p=>p.id.includes("dr-pepper")}
+];
+const productButtons=new Map(), productGroupById=new Map();
+PRODUCT_GROUPS.forEach((group,groupIndex)=>{
+ const members=PRODUCTS.filter(group.matches);
+ if(!members.length)return;
+ const section=document.createElement("details");
+ section.className="product-group";
+ section.open=groupIndex===0;
+ const heading=document.createElement("summary");heading.textContent=group.name;
+ const items=document.createElement("div");items.className="product-group-items";
+ section.append(heading,items);products.appendChild(section);
+ members.forEach(p=>{
+  const b=document.createElement("button");b.type="button";b.className="prod";
+  b.style.setProperty("--c",p.color);b.textContent=p.name;
+  b.onclick=()=>{selectedProduct=p.id;syncButtons();if(currentView==="back"){$("backProduct").value=p.id;if(selectedIndex>=0){const s=stacks[selectedIndex];s.backEnabled=true;s.backProduct=p.id;$("backEnabled").checked=true;toggleBackFields();render();}}else{ps.value=p.id;if(selectedIndex>=0){stacks[selectedIndex].product=p.id;render();}}};
+  items.appendChild(b);productButtons.set(p.id,b);productGroupById.set(p.id,section);
+ });
+});
+// Keep the existing settings dropdowns and mixed-depth product choices intact.
+PRODUCTS.forEach(p=>{
+ const o=document.createElement("option");o.value=p.id;o.textContent=p.name;ps.appendChild(o);
+ const bo=document.createElement("option");bo.value=p.id;bo.textContent=p.name;$("backProduct").appendChild(bo);
+});
+function availableForPackage(id,pkg){
+ if(pkg==="6pk")return SIXPK_PRODUCTS.has(id);
+ if(pkg==="24")return TWENTYFOUR_PRODUCTS.has(id);
+ return true;
+}
+function refreshProductSidebar(){
+ const pkg=currentView==="back"?$("backPackageType").value:$("packageType").value;
+ productButtons.forEach((b,id)=>{b.hidden=!availableForPackage(id,pkg);});
+ products.querySelectorAll(".product-group").forEach(group=>{
+  group.hidden=![...group.querySelectorAll(".prod")].some(b=>!b.hidden);
+ });
+}
+function syncButtons(){
+ refreshProductSidebar();
+ productButtons.forEach((b,id)=>b.classList.toggle("active",id===selectedProduct));
+ const group=productGroupById.get(selectedProduct);if(group && !group.hidden)group.open=true;
+}
 function asset(id,o,pkg){if(pkg==="6pk")return `assets/${id}-6pk-${o}.png`;if(pkg==="24")return `assets/${id}-24-${o}.png`;return `assets/${id}-12-${o}.png`}
 function parseDepthHeights(){
  const depth=Math.max(1,+$("depth").value||1);
@@ -464,6 +508,7 @@ $("packageType").onchange=()=>{
      $("depthHeights").value=Array(d).fill(11).join(",");
    }
  }
+ refreshProductSidebar();
  updateSelected();
 };
 ["facings","caseHeight","orientation"].forEach(id=>$(id).oninput=updateSelected);
