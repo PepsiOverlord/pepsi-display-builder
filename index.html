@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Display Builder">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Display Builder — iOS V20</title>
+<title>Display Builder — Physical XYZ Grid V7</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#eef1f5;color:#111}
 .app{display:grid;grid-template-columns:165px 1fr 230px;height:100vh}
@@ -22,61 +22,54 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 .build.side-mode{display:block;position:absolute;bottom:72px}
 .build.side-mode .stack{position:absolute;left:0;bottom:0}
 .stack{display:flex;align-items:flex-end;gap:0;cursor:pointer;outline-offset:3px}.stack.selected{outline:2px dashed #444}
-.column{display:flex;flex-direction:column-reverse;gap:0}.case{display:block;object-fit:fill}
+.column{display:flex;flex-direction:column-reverse;gap:0}.case{display:block;object-fit:fill;vertical-align:top}.case24box{position:relative;display:block;overflow:hidden;flex:0 0 auto}.case24box img{position:absolute;display:block;max-width:none;max-height:none}
 .right h3{font-size:14px;margin:0 0 25px}.field{margin-bottom:13px}.field label{display:block;font-size:9px;font-weight:bold;margin-bottom:5px}.field input,.field select{width:100%;padding:7px;border:1px solid #ccc;border-radius:5px}
 .delete{width:100%;padding:7px;border:1px solid #e3bcbc;color:#b00000;background:#fff;border-radius:5px;cursor:pointer;margin-top:5px}
 .info{font-size:10px;background:#f5f6f8;padding:9px;border-radius:6px;line-height:1.45;margin-top:12px}
 .counts{font-size:10px;margin-top:18px;border-top:1px solid #ddd;padding-top:12px}.countrow{display:flex;justify-content:space-between;margin:5px 0}.sectionhead{font-size:10px;font-weight:800;margin:16px 0 8px;padding-top:10px;border-top:1px solid #ddd}.checkrow{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-bottom:10px}.checkrow input{width:auto}.backfields.disabled{opacity:.4;pointer-events:none}.back-placeholder{min-width:120px;height:90px;border:2px dashed #aaa;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:10px;color:#666;background:#fafafa;font-size:11px;font-weight:700;text-align:center;cursor:pointer}.back-placeholder.selected{outline:3px solid #111;border-color:#111}
-
-.mobile-only{display:none}
 @media(max-width:820px){
  html,body{height:100%;overflow:hidden}
  body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
  .app{display:block;height:100%;position:relative}
  .left,.right{position:fixed;top:env(safe-area-inset-top);bottom:env(safe-area-inset-bottom);width:min(86vw,360px);z-index:50;overflow:auto;transition:transform .2s ease;box-shadow:0 0 24px rgba(0,0,0,.22)}
- .left{left:0;transform:translateX(-105%);border-right:1px solid #ddd}
- .right{right:0;transform:translateX(105%);border-left:1px solid #ddd}
- body.products-open .left{transform:translateX(0)}
- body.settings-open .right{transform:translateX(0)}
- body.products-open .mobile-scrim,body.settings-open .mobile-scrim{display:block}
+ .left{left:0;transform:translateX(-105%)} .right{right:0;transform:translateX(105%)}
+ body.products-open .left{transform:translateX(0)} body.settings-open .right{transform:translateX(0)}
  .main{height:100%;padding:8px;display:flex;flex-direction:column;min-width:0}
- .toolbar{gap:5px;margin-bottom:8px;overflow-x:auto;white-space:nowrap;padding-bottom:2px;scrollbar-width:none}
- .toolbar::-webkit-scrollbar{display:none}
+ .toolbar{gap:5px;margin-bottom:8px;overflow-x:auto;white-space:nowrap}
  .toolbar button{flex:0 0 auto;padding:8px 9px;font-size:11px}
- .toolbar #deleteTopBtn,.toolbar #clearBtn{display:none}
- .mobile-only{display:inline-block}
- .stage{height:auto;flex:1;min-height:0;border-radius:9px;-webkit-overflow-scrolling:touch}
- .stage-title{padding:10px;font-size:11px}
- .floor{left:12px;right:12px;bottom:24px;height:14px}
- .build{left:20px;bottom:38px}
- .build.side-mode{bottom:54px}
- .prod{padding:10px;margin-bottom:7px}
- .right{padding-bottom:30px}
- .right h3{margin-bottom:18px}
- .field input,.field select{font-size:16px;padding:10px} /* prevents iOS zoom */
+ .mobile-only{display:inline-block!important}
+ .stage{height:auto;flex:1;min-height:0}
+ .field input,.field select{font-size:16px;padding:10px}
  .mobile-scrim{display:none;position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.28)}
+ body.products-open .mobile-scrim,body.settings-open .mobile-scrim{display:block}
 }
-@media(max-width:430px){
- .toolbar button{padding:8px 7px;font-size:10px}
-}
+.mobile-only{display:none}
+.case24{display:block!important;margin:0!important;padding:0!important;}
 </style></head>
 <body><div class="app">
-<aside class="left"><h2>Display Builder</h2><div class="sub">12-pack + 6-pack shell assets</div><div id="products"></div></aside>
+<aside class="left"><h2>Display Builder</h2><div class="sub">12-pack + 24-pack + 6-pack shell assets</div><div id="products"></div></aside>
 <main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
 <div class="stage"><div class="stage-title" id="viewTitle">Front view</div><div id="build" class="build"></div><div class="floor"></div></div></main>
 <aside class="right"><h3>Stack settings</h3>
-<div class="field"><label>PACKAGE</label><select id="packageType"><option value="12">12-Pack</option><option value="6pk">6-Pack .5L Shell</option></select></div>
+<div class="field"><label>PACKAGE</label><select id="packageType"><option value="12">12-Pack</option><option value="24">24-Pack Slab</option><option value="6pk">6-Pack .5L Shell</option></select></div>
 <div class="field"><label>PRODUCT</label><select id="productSelect"></select></div>
 <div class="field"><label>HEIGHT (CASES)</label><input id="height" type="number" min="1" max="15" value="6"></div>
 <div class="field"><label>FACINGS</label><input id="facings" type="number" min="1" max="8" value="1"></div>
 <div class="field"><label>DEPTH</label><input id="depth" type="number" min="1" max="8" value="1"></div>
-<div class="field"><label>DEPTH HEIGHTS (FRONT → BACK)</label><input id="depthHeights" type="text" value="6" placeholder="11,10,9,8,7"><label class="checkrow" style="margin-top:7px;margin-bottom:0"><input id="stairStep" type="checkbox"> Stair step automatically</label><div style="font-size:10px;color:#666;margin-top:4px">When on, depth automatically steps down 1 case at a time from HEIGHT.</div></div>
+<div class="field"><label>DEPTH HEIGHTS (FRONT → BACK; LOW → HIGH)</label><input id="depthHeights" type="text" value="6" placeholder="11,10,9,8,7"><label class="checkrow" style="margin-top:7px;margin-bottom:0"><input id="stairStep" type="checkbox"> Stair step automatically</label><div style="font-size:10px;color:#666;margin-top:4px">When on, HEIGHT is the tallest BACK stack; cases step down 1 toward the FRONT.</div></div>
+<div class="sectionhead">MIXED DEPTH ROW</div>
+<label class="checkrow"><input id="mixedEnabled" type="checkbox"> Mix two products in this row</label>
+<div id="mixedFields" class="backfields disabled">
+<div class="field"><label>FRONT PRODUCT</label><select id="mixedFrontProduct"></select></div>
+<div class="field"><label>FRONT PRODUCT DEPTH (OF TOTAL DEPTH)</label><input id="mixedFrontDepth" type="number" min="1" max="12" value="2"></div>
+<div class="info">Remaining depth uses the main PRODUCT as the back product. Depth heights still control each position, front to back.</div>
+</div>
 <div class="field"><label>ORIENTATION</label><select id="orientation"><option value="long">Long side</option><option value="short">Short side</option></select></div>
 <div class="field"><label>CASE HEIGHT (SCREEN PX)</label><input id="caseHeight" type="number" min="15" max="100" value="38"></div>
 <div class="sectionhead">BACK SECTION — SAME PHYSICAL ROW</div>
 <label class="checkrow"><input id="backEnabled" type="checkbox"> Add product from backside</label>
 <div id="backFields" class="backfields disabled">
-<div class="field"><label>BACK PACKAGE</label><select id="backPackageType"><option value="12">12-Pack</option><option value="6pk">6-Pack .5L Shell</option></select></div>
+<div class="field"><label>BACK PACKAGE</label><select id="backPackageType"><option value="12">12-Pack</option><option value="24">24-Pack Slab</option><option value="6pk">6-Pack .5L Shell</option></select></div>
 <div class="field"><label>BACK PRODUCT</label><select id="backProduct"></select></div>
 <div class="field"><label>BACK FACINGS</label><input id="backFacings" type="number" min="1" max="24" value="1"></div>
 <div class="field"><label>BACK DEPTH</label><input id="backDepth" type="number" min="1" max="12" value="1"></div>
@@ -84,12 +77,18 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 <div class="field"><label>BACK ORIENTATION</label><select id="backOrientation"><option value="long">Long side</option><option value="short">Short side</option></select></div>
 </div>
 <button id="deleteBtn" class="delete">Delete selected stack</button>
-<div class="info">Each selected stack is one physical row position. The FRONT section and optional BACK section are independent: product, facings, depth heights, package, and orientation can differ. Back depth heights are entered backside → inward. This allows Pepsi long-side from the front and Dew short-side from the back in the same physical row. 12-pack assets use *-12-long/short.png. 6-pack shell assets use *-6pk-long/short.png. 6-pack shells are available for Pepsi, Diet Pepsi, Mtn Dew, Diet Mtn Dew, Dr Pepper, and Diet Dr Pepper.</div>
+<div class="info">Each selected stack is one physical row position. The FRONT section and optional BACK section are independent: product, facings, depth heights, package, and orientation can differ. Back depth heights are entered backside → inward. This allows Pepsi long-side from the front and Dew short-side from the back in the same physical row. 12-pack assets use *-12-long/short.png. 24-pack assets use *-24-long/short.png. Mixed rows split the front depth between two products. 6-pack shell assets use *-6pk-long/short.png. 6-pack shells are available for Pepsi, Diet Pepsi, Mtn Dew, Diet Mtn Dew, Dr Pepper, and Diet Dr Pepper.</div>
 <div id="counts" class="counts"></div>
 </aside><div id="mobileScrim" class="mobile-scrim"></div></div>
 <script>
 const PRODUCTS=[
 {id:"pepsi",name:"Pepsi",color:"#1261c9"},{id:"diet-pepsi",name:"Diet Pepsi",color:"#bbb"},
+{id:"pepsi-wild-cherry",name:"Pepsi Wild Cherry",color:"#c7194a"},
+ {id:"caffeine-free-diet-pepsi",name:"Caffeine Free Diet Pepsi",color:"#b9a15b"},
+ {id:"caffeine-free-pepsi",name:"Caffeine Free Pepsi",color:"#d4a12a"},
+ {id:"pepsi-real-sugar",name:"Pepsi Real Sugar",color:"#2255a0"},
+ {id:"mtn-dew-zero-code-red",name:"Mtn Dew Zero Sugar Code Red",color:"#ac1845"},
+ {id:"mtn-dew-zero-baja-blast",name:"Mtn Dew Zero Sugar Baja Blast",color:"#008f89"},
 {id:"pepsi-zero",name:"Pepsi Zero Sugar",color:"#111"},
 {id:"pepsi-zero-wild-cherry",name:"Pepsi Zero Wild Cherry",color:"#111"},
 {id:"mtn-dew",name:"Mtn Dew",color:"#35ad47"},{id:"diet-mtn-dew",name:"Diet Mtn Dew",color:"#aaa"},
@@ -97,20 +96,29 @@ const PRODUCTS=[
 {id:"mtn-dew-baja-blast",name:"Mtn Dew Baja Blast",color:"#16b9b4"},
 {id:"mtn-dew-code-red",name:"Mtn Dew Code Red",color:"#e3132b"},
 {id:"dr-pepper",name:"Dr Pepper",color:"#a31327"},{id:"diet-dr-pepper",name:"Diet Dr Pepper",color:"#ddd"},
-{id:"dr-pepper-zero",name:"Dr Pepper Zero Sugar",color:"#111"}];
+{id:"dr-pepper-zero",name:"Dr Pepper Zero Sugar",color:"#111"},
+ {id:"mtn-dew-voltage",name:"Mtn Dew Voltage",color:"#168cdb"},
+ {id:"mtn-dew-dirty",name:"Dirty Mtn Dew",color:"#d5a95b"},
+ {id:"dr-pepper-cream-soda",name:"Dr Pepper & Cream Soda",color:"#b78a5b"},
+ {id:"dr-pepper-zero-cream-soda",name:"Dr Pepper Zero Sugar & Cream Soda",color:"#b99a5a"},
+ {id:"dr-pepper-cherry",name:"Dr Pepper Cherry",color:"#d71943"},
+ {id:"dr-pepper-zero-cherry",name:"Dr Pepper Cherry Zero Sugar",color:"#bd1740"}];
+PRODUCTS.forEach(p=>{let o=document.createElement("option");o.value=p.id;o.textContent=p.name;document.getElementById("mixedFrontProduct").appendChild(o)});
 const STANDARD={long:{w:1515,h:471},short:{w:460,h:471}};
+const TWENTYFOUR={long:{w:2200,h:733},short:{w:1260,h:733}};
+const TWENTYFOUR_PRODUCTS=new Set(["pepsi","diet-pepsi","pepsi-wild-cherry"]);
 // Independent physical footprint for loaded 6-pack .5L shells.
 // Long side = 22 in, short side = 15 in (1.25 ft).
-// Loaded 6-pack shells are 1.5 in taller than the corresponding 12-pack screen height.
-const SIXPK_DIMENSIONS={long:{inches:22},short:{inches:15},extraHeightInches:1.5};
-// Reference width used only to turn the physical dimensions into a consistent on-screen scale.
-const SIXPK_PX_PER_INCH=5;
+// Provisional loaded-shell height; calibrate with a measured shell if available.
+const SIXPK_DIMENSIONS={long:{inches:22},short:{inches:15},heightInches:10.5};
+// Approximate 12-pack layer height establishes one scale for all packages.
+const TWELVEPACK_HEIGHT_INCHES=5;
 const SIXPK_PRODUCTS=new Set(["pepsi","diet-pepsi","mtn-dew","diet-mtn-dew","dr-pepper","diet-dr-pepper"]);
 let selectedProduct="pepsi", selectedIndex=-1, stacks=[], currentView="front";
 const $=id=>document.getElementById(id), products=$("products"), ps=$("productSelect");
 PRODUCTS.forEach(p=>{let b=document.createElement("button");b.className="prod";b.style.setProperty("--c",p.color);b.textContent=p.name;b.onclick=()=>{selectedProduct=p.id;syncButtons();if(currentView==="back"){$("backProduct").value=p.id;if(selectedIndex>=0){const s=stacks[selectedIndex];s.backEnabled=true;s.backProduct=p.id;$("backEnabled").checked=true;toggleBackFields();render();}}else{ps.value=p.id;if(selectedIndex>=0){stacks[selectedIndex].product=p.id;render();}}};products.appendChild(b);let o=document.createElement("option");o.value=p.id;o.textContent=p.name;ps.appendChild(o);let bo=document.createElement("option");bo.value=p.id;bo.textContent=p.name;$("backProduct").appendChild(bo)});
 function syncButtons(){[...products.children].forEach((b,i)=>b.classList.toggle("active",PRODUCTS[i].id===selectedProduct))}
-function asset(id,o,pkg){return pkg==="6pk" ? `assets/${id}-6pk-${o}.png` : `assets/${id}-12-${o}.png`}
+function asset(id,o,pkg){if(pkg==="6pk")return `assets/${id}-6pk-${o}.png`;if(pkg==="24")return `assets/${id}-24-${o}.png`;return `assets/${id}-12-${o}.png`}
 function parseDepthHeights(){
  const depth=Math.max(1,+$("depth").value||1);
  let vals=$("depthHeights").value.split(",").map(v=>Math.max(1,Math.min(15,parseInt(v.trim())||0))).filter(Boolean);
@@ -125,20 +133,28 @@ function parseList(id,depthId,fallback){
  return vals.slice(0,depth);
 }
 function stairValues(start,depth){start=Math.max(1,+start||1);depth=Math.max(1,+depth||1);return Array.from({length:depth},(_,i)=>Math.max(1,start-i));}
-function applyFrontStair(){if(!$(`stairStep`).checked)return;let vals=stairValues($("height").value,$("depth").value);$("depthHeights").value=vals.join(",");}
+function applyFrontStair(){
+ if(!$("stairStep").checked)return;
+ // HEIGHT is the tallest BACK case. Depth heights are stored FRONT -> BACK.
+ const depth=Math.max(1,+$("depth").value||1);
+ const tallest=Math.max(1,+$("height").value||1);
+ const vals=Array.from({length:depth},(_,i)=>Math.max(1,tallest-(depth-1-i)));
+ $("depthHeights").value=vals.join(",");
+}
 function applyBackStair(){if(!$(`backStairStep`).checked)return;let depth=Math.max(1,+$("backDepth").value||1);let first=parseInt(($("backDepthHeights").value.split(",")[0]||"11").trim())||11;$("backDepthHeights").value=stairValues(first,depth).join(",");}
 function controlsToObject(){
  applyFrontStair();applyBackStair();
  let dh=parseDepthHeights();
  let bdh=parseList("backDepthHeights","backDepth",11);
  return {frontEnabled:true,packageType:$("packageType").value,product:ps.value,height:dh[0],facings:+$("facings").value||1,depth:dh.length,depthHeights:dh,orientation:$("orientation").value,caseHeight:+$("caseHeight").value||38,
- stairStep:$("stairStep").checked,backStairStep:$("backStairStep").checked,backEnabled:$("backEnabled").checked,backPackageType:$("backPackageType").value,backProduct:$("backProduct").value||"mtn-dew",backFacings:+$("backFacings").value||1,backDepth:bdh.length,backDepthHeights:bdh,backOrientation:$("backOrientation").value};
+ mixedEnabled:$("mixedEnabled").checked,mixedFrontProduct:$("mixedFrontProduct").value,mixedFrontDepth:+$("mixedFrontDepth").value||2,stairStep:$("stairStep").checked,backStairStep:$("backStairStep").checked,backEnabled:$("backEnabled").checked,backPackageType:$("backPackageType").value,backProduct:$("backProduct").value||"mtn-dew",backFacings:+$("backFacings").value||1,backDepth:bdh.length,backDepthHeights:bdh,backOrientation:$("backOrientation").value};
 }
 function loadControls(s){
- $("packageType").value=s.packageType||"12";ps.value=s.product||"pepsi";let dh=s.depthHeights||Array(s.depth||1).fill(s.height||1);$("height").value=dh[0]||s.height||1;$("facings").value=s.facings||1;$("depth").value=dh.length;$("depthHeights").value=dh.join(",");$("orientation").value=s.orientation||"long";$("caseHeight").value=s.caseHeight||38;$("stairStep").checked=!!s.stairStep;
+ $("packageType").value=s.packageType||"12";ps.value=s.product||"pepsi";let dh=s.depthHeights||Array(s.depth||1).fill(s.height||1);$("height").value=s.stairStep?Math.max(...dh):(dh[0]||s.height||1);$("facings").value=s.facings||1;$("depth").value=dh.length;$("depthHeights").value=dh.join(",");$("orientation").value=s.orientation||"long";$("caseHeight").value=s.caseHeight||38;$("stairStep").checked=!!s.stairStep;$("mixedEnabled").checked=!!s.mixedEnabled;$("mixedFrontProduct").value=s.mixedFrontProduct||"diet-pepsi";$("mixedFrontDepth").value=s.mixedFrontDepth||2;toggleMixedFields();
  $("backEnabled").checked=!!s.backEnabled;$("backPackageType").value=s.backPackageType||"12";$("backProduct").value=s.backProduct||s.product||"pepsi";$("backFacings").value=s.backFacings||1;let bdh=s.backDepthHeights||Array(s.backDepth||1).fill(11);$("backDepth").value=bdh.length;$("backDepthHeights").value=bdh.join(",");$("backOrientation").value=s.backOrientation||"short";$("backStairStep").checked=!!s.backStairStep;toggleBackFields();
  selectedProduct=(currentView==="back" ? (s.backProduct||"pepsi") : (s.product||"pepsi"));syncButtons();
 }
+function toggleMixedFields(){$("mixedFields").classList.toggle("disabled",!$("mixedEnabled").checked)}
 function toggleBackFields(){$("backFields").classList.toggle("disabled",!$("backEnabled").checked)}
 function addStack(){
  // A new front stack inherits the complete front geometry/settings from the
@@ -157,7 +173,7 @@ function addStack(){
      depthHeights:[...(n.depthHeights||[n.height])],
      orientation:n.orientation,
      caseHeight:n.caseHeight,
-     stairStep:!!n.stairStep,
+     stairStep:!!n.stairStep,mixedEnabled:!!n.mixedEnabled,mixedFrontProduct:n.mixedFrontProduct||"diet-pepsi",mixedFrontDepth:n.mixedFrontDepth||2,
      backEnabled:false
    };
  }else{
@@ -188,21 +204,25 @@ function updateSelected(){
  }else{
    applyFrontStair();
    const dh=parseDepthHeights();
-   s.packageType=$("packageType").value;s.product=ps.value;s.height=dh[0];s.facings=Math.max(1,+$("facings").value||1);s.depth=dh.length;s.depthHeights=dh;s.orientation=$("orientation").value;s.caseHeight=+$("caseHeight").value||38;s.stairStep=$("stairStep").checked;
+   s.packageType=$("packageType").value;s.product=ps.value;s.height=($("stairStep").checked?Math.max(...dh):dh[0]);s.facings=Math.max(1,+$("facings").value||1);s.depth=dh.length;s.depthHeights=dh;s.orientation=$("orientation").value;s.caseHeight=+$("caseHeight").value||38;s.stairStep=$("stairStep").checked;s.mixedEnabled=$("mixedEnabled").checked;s.mixedFrontProduct=$("mixedFrontProduct").value;s.mixedFrontDepth=Math.max(1,+$("mixedFrontDepth").value||1);
  }
  render();
 }
 function caseMetrics(s,viewOrientation){
  const pkg=s.packageType||"12";
+ const pixelsPerInch=s.caseHeight/TWELVEPACK_HEIGHT_INCHES;
  const displayH = pkg==="6pk"
-   ? Math.round(s.caseHeight + SIXPK_DIMENSIONS.extraHeightInches*SIXPK_PX_PER_INCH)
+   ? Math.round(SIXPK_DIMENSIONS.heightInches*pixelsPerInch)
    : s.caseHeight;
+ const twelvePackW = Math.round(s.caseHeight*(STANDARD[viewOrientation].w/STANDARD[viewOrientation].h));
  const caseW = pkg==="6pk"
-   ? Math.round(SIXPK_DIMENSIONS[viewOrientation].inches*SIXPK_PX_PER_INCH)
-   : Math.round(s.caseHeight*(STANDARD[viewOrientation].w/STANDARD[viewOrientation].h));
+   ? Math.round(SIXPK_DIMENSIONS[viewOrientation].inches*pixelsPerInch)
+   : pkg==="24"
+     ? (viewOrientation==="long" ? twelvePackW : twelvePackW * 2)
+     : twelvePackW;
  return {displayH,caseW};
 }
-function makeStackElement(s,idx,viewOrientation,visibleColumns){
+function makeStackElement(s,idx,viewOrientation,visibleColumns,productColumns){
  const {displayH,caseW}=caseMetrics(s,viewOrientation);
  let el=document.createElement("div");
  el.className="stack"+(idx===selectedIndex?" selected":"");
@@ -211,17 +231,50 @@ function makeStackElement(s,idx,viewOrientation,visibleColumns){
  for(let x=0;x<heights.length;x++){
    let col=document.createElement("div");col.className="column";
    for(let y=0;y<heights[x];y++){
-     let im=document.createElement("img");im.className="case";
-     im.src=asset(s.product,viewOrientation,s.packageType||"12");
-     im.width=caseW;im.height=displayH;
-     im.onerror=()=>{im.style.outline="2px solid red";im.alt="missing"};
-     col.appendChild(im);
+     const pkg=s.packageType||"12";
+     const caseProduct=productColumns ? productColumns[x] : s.product;
+     if(pkg==="24"){
+       // 24pk locked physical rule:
+       // LONG face = exactly 1x the corresponding 12pk long face.
+       // SHORT face = exactly 2x the corresponding 12pk short face.
+       // Height = exactly 1x the corresponding 12pk height in both orientations.
+       // No overlap, zoom, clipping, or product-specific compensation.
+       let box=document.createElement("div");box.className="case24box";
+       box.style.width=caseW+"px";box.style.height=displayH+"px";
+       box.style.marginLeft="0px";
+       box.style.marginBottom="0px";
+       let im=document.createElement("img");im.className="case case24";
+       im.src=asset(caseProduct,viewOrientation,pkg);
+       im.style.width=caseW+"px";
+       im.style.height=displayH+"px";
+       im.style.left="0px";
+       im.style.top="0px";
+       im.style.objectFit="fill";
+       im.onerror=()=>{box.style.outline="2px solid red";im.alt="missing"};
+       box.appendChild(im);col.appendChild(box);
+     }else{
+       let im=document.createElement("img");im.className="case";
+       im.src=asset(caseProduct,viewOrientation,pkg);
+       im.width=caseW;im.height=displayH;
+       im.onerror=()=>{im.style.outline="2px solid red";im.alt="missing"};
+       col.appendChild(im);
+     }
    }
    el.appendChild(col);
  }
  return el;
 }
 function backAsStack(s){return {packageType:s.backPackageType||"12",product:s.backProduct||"mtn-dew",facings:s.backFacings||1,depth:s.backDepth||1,depthHeights:s.backDepthHeights||[11],height:(s.backDepthHeights||[11])[0],orientation:s.backOrientation||"short",caseHeight:s.caseHeight};}
+function fitBuild(){
+ const build=$("build"),stage=build.parentElement;
+ // Fit the complete elevation uniformly; package proportions stay unchanged.
+ const bottom=currentView==="left"||currentView==="right"?72:50;
+ const availableWidth=Math.max(1,stage.clientWidth-60);
+ const availableHeight=Math.max(1,stage.clientHeight-bottom-55);
+ const scale=Math.min(1,availableWidth/Math.max(1,build.offsetWidth),availableHeight/Math.max(1,build.offsetHeight));
+ build.style.transformOrigin="bottom left";
+ build.style.transform=`scale(${scale})`;
+}
 function render(){
  const build=$("build"); build.innerHTML="";
  const isSide=currentView==="left"||currentView==="right";
@@ -233,7 +286,32 @@ function render(){
    stacks.forEach((s,idx)=>{
      if(s.frontEnabled===false)return;
      const dh=s.depthHeights||[s.height];
-     build.appendChild(makeStackElement({...s,height:dh[0]},idx,s.orientation,s.facings));
+     if(s.mixedEnabled && dh.length>1){
+       // A front-facing camera sees the nearest product, plus taller cases
+       // behind it above the front stack. Render back-to-front in one footprint.
+       const {caseW,displayH}=caseMetrics(s,s.orientation);
+       const lane=document.createElement("div");
+       lane.style.position="relative";
+       lane.style.flex="0 0 auto";
+       lane.style.width=(caseW*s.facings)+"px";
+       lane.style.height=(displayH*Math.max(...dh))+"px";
+       lane.className=idx===selectedIndex?"selected":"";
+       lane.style.cursor="pointer";
+       lane.onclick=e=>{e.stopPropagation();selectedIndex=idx;loadControls(stacks[idx]);render()};
+       // Paint furthest first, nearest last. Each layer shares the same bottom.
+       for(let d=dh.length-1;d>=0;d--){
+         const product=d<Math.min(dh.length,s.mixedFrontDepth||1)?s.mixedFrontProduct:s.product;
+         const layer=makeStackElement({...s,product,height:dh[d]},idx,s.orientation,s.facings);
+         layer.classList.remove("selected");layer.style.outline="none";
+         layer.style.position="absolute";layer.style.left="0";layer.style.bottom="0";
+         layer.style.zIndex=String(dh.length-d);
+         layer.onclick=null;
+         lane.appendChild(layer);
+       }
+       build.appendChild(lane);
+     }else{
+       build.appendChild(makeStackElement({...s,height:Math.max(...dh),product:s.product},idx,s.orientation,s.facings));
+     }
    });
    build.style.width=""; build.style.height="";
  }
@@ -271,7 +349,7 @@ function render(){
        const ori=s.orientation==="long"?"short":"long";
        const m=caseMetrics(s,ori);
        const hs=(s.depthHeights||[s.height]).slice(); // FRONT -> inward
-       frontParts.push({idx,s,ori,m,hs,facings:Math.max(1,+s.facings||1)});
+       frontParts.push({idx,s,ori,m,hs,prods:hs.map((_,i)=>s.mixedEnabled && i<Math.min(hs.length,s.mixedFrontDepth||1)?s.mixedFrontProduct:s.product),facings:Math.max(1,+s.facings||1)});
        frontSpan=Math.max(frontSpan,m.caseW*hs.length);
        maxH=Math.max(maxH,m.displayH*Math.max(...hs));
      }
@@ -299,6 +377,7 @@ function render(){
    // This is the key fix: 3 facings no longer become 3 depth columns.
    function drawProfile(part, side){
      let hs=part.hs.slice();
+     let prods=part.prods ? part.prods.slice() : hs.map(()=>part.s.product);
      let physicalLeft=0;
 
      // Build one canonical physical axis first:
@@ -306,7 +385,7 @@ function render(){
      if(side==="front"){
        physicalLeft=0;                 // hs already FRONT -> inward
      }else{
-       hs.reverse();                   // inward -> BACK
+       hs.reverse();prods.reverse();  // inward -> BACK
        physicalLeft=frontSpan;
      }
 
@@ -316,11 +395,10 @@ function render(){
      let left=physicalLeft;
      if(currentView==="left"){
        left=totalSpan-physicalLeft-sectionSpan;
-     }else if(currentView==="right"){
-       hs.reverse();
-     }
+       hs.reverse();prods.reverse(); // left screen reads BACK -> FRONT
+     } // right screen reads FRONT -> BACK in canonical order
 
-     const el=makeStackElement(part.s,part.idx,part.ori,hs);
+     const el=makeStackElement(part.s,part.idx,part.ori,hs,prods);
      el.classList.remove("selected");
      el.style.outline="none";
      el.style.position="absolute";
@@ -356,9 +434,13 @@ function render(){
    build.style.width=totalSpan+"px";
    build.style.height=Math.max(1,maxH)+"px";
  }
+ fitBuild();
  renderCounts();
 }
-function renderCounts(){let totals={},grand=0;function add(pkg,prod,fac,hs){let n=hs.reduce((a,b)=>a+b,0)*fac,key=pkg+"|"+prod;totals[key]=(totals[key]||0)+n;grand+=n}stacks.forEach(s=>{if(s.frontEnabled!==false)add(s.packageType||"12",s.product,s.facings,s.depthHeights||[s.height]);if(s.backEnabled){let b=backAsStack(s);add(b.packageType,b.product,b.facings,b.depthHeights)}});let h="<b>Case count</b>";PRODUCTS.forEach(p=>{["12","6pk"].forEach(pkg=>{let key=pkg+"|"+p.id;if(totals[key])h+=`<div class="countrow"><span>${p.name} ${pkg==="6pk"?"6pk":"12pk"}</span><b>${totals[key]}</b></div>`})});h+=`<hr><div class="countrow"><b>Total</b><b>${grand}</b></div>`;$("counts").innerHTML=h}
+new ResizeObserver(fitBuild).observe($("build").parentElement);
+function renderCounts(){let totals={},grand=0;function add(pkg,prod,fac,hs){let n=hs.reduce((a,b)=>a+b,0)*fac,key=pkg+"|"+prod;totals[key]=(totals[key]||0)+n;grand+=n}stacks.forEach(s=>{if(s.frontEnabled!==false){const hs=s.depthHeights||[s.height];if(s.mixedEnabled){hs.forEach((h,i)=>add(s.packageType||"12",i<Math.min(hs.length,s.mixedFrontDepth||1)?s.mixedFrontProduct:s.product,s.facings,[h]))}else add(s.packageType||"12",s.product,s.facings,hs)}if(s.backEnabled){let b=backAsStack(s);add(b.packageType,b.product,b.facings,b.depthHeights)}});let h="<b>Case count</b>";PRODUCTS.forEach(p=>{["12","24","6pk"].forEach(pkg=>{let key=pkg+"|"+p.id;if(totals[key])h+=`<div class="countrow"><span>${p.name} ${pkg==="6pk"?"6pk":pkg==="24"?"24pk":"12pk"}</span><b>${totals[key]}</b></div>`})});h+=`<hr><div class="countrow"><b>Total</b><b>${grand}</b></div>`;$("counts").innerHTML=h}
+$("mixedEnabled").onchange=()=>{toggleMixedFields();updateSelected()};
+["mixedFrontProduct","mixedFrontDepth"].forEach(id=>$(id).onchange=updateSelected);
 ps.onchange=()=>{selectedProduct=ps.value;syncButtons();updateSelected()};
 $("packageType").onchange=()=>{
  if($("packageType").value==="6pk"){
@@ -367,6 +449,13 @@ $("packageType").onchange=()=>{
    if($("stairStep").checked){applyFrontStair()}else{
      const d=Math.max(1,+$("depth").value||1);
      $("depthHeights").value=Array(d).fill(8).join(",");
+   }
+ }else if($("packageType").value==="24"){
+   if(!TWENTYFOUR_PRODUCTS.has(ps.value)){ps.value="pepsi";selectedProduct="pepsi";syncButtons()}
+   $("height").value=11;
+   if($("stairStep").checked){applyFrontStair()}else{
+     const d=Math.max(1,+$("depth").value||1);
+     $("depthHeights").value=Array(d).fill(11).join(",");
    }
  }else{
    $("height").value=11;
@@ -378,7 +467,7 @@ $("packageType").onchange=()=>{
  updateSelected();
 };
 ["facings","caseHeight","orientation"].forEach(id=>$(id).oninput=updateSelected);
-$("depthHeights").oninput=()=>{let vals=$("depthHeights").value.split(",").map(v=>v.trim()).filter(Boolean);if(vals.length){$("depth").value=vals.length;$("height").value=vals[0]}updateSelected()};
+$("depthHeights").oninput=()=>{let vals=$("depthHeights").value.split(",").map(v=>v.trim()).filter(Boolean);if(vals.length){$("depth").value=vals.length;$("height").value=$("stairStep").checked?Math.max(...vals.map(Number)):vals[0]}updateSelected()};
 $("depth").oninput=()=>{if($("stairStep").checked){applyFrontStair()}else{let d=Math.max(1,+$("depth").value||1), vals=parseDepthHeights();$("depthHeights").value=vals.slice(0,d).join(",")}updateSelected()};
 $("height").oninput=()=>{if($("stairStep").checked){applyFrontStair()}else{let vals=parseDepthHeights();vals[0]=Math.max(1,+$("height").value||1);$("depthHeights").value=vals.join(",")}updateSelected()};
 $("stairStep").onchange=()=>{if($("stairStep").checked)applyFrontStair();updateSelected()};
@@ -399,6 +488,8 @@ function updateBackSelected(){
 }
 $("backEnabled").onchange=()=>{toggleBackFields();updateBackSelected()};
 $("backPackageType").onchange=()=>{
+ if($("backPackageType").value==="24" && !TWENTYFOUR_PRODUCTS.has($("backProduct").value)) $("backProduct").value="pepsi";
+ if($("backPackageType").value==="6pk" && !SIXPK_PRODUCTS.has($("backProduct").value)) $("backProduct").value="pepsi";
  const h=$("backPackageType").value==="6pk"?8:11;
  const d=Math.max(1,+$("backDepth").value||1);
  $("backDepthHeights").value=$("backStairStep").checked?stairValues(h,d).join(","):Array(d).fill(h).join(",");
@@ -457,13 +548,12 @@ $("frontBtn").onclick=()=>setView("front","Front side","frontBtn");
 $("leftBtn").onclick=()=>setView("left","Left side","leftBtn");
 $("rightBtn").onclick=()=>setView("right","Right side","rightBtn");
 $("backBtn").onclick=()=>setView("back","Backside","backBtn");
-
 function closeMobilePanels(){document.body.classList.remove("products-open","settings-open")}
 $("mobileProductsBtn").onclick=()=>{document.body.classList.remove("settings-open");document.body.classList.toggle("products-open")};
 $("mobileSettingsBtn").onclick=()=>{document.body.classList.remove("products-open");document.body.classList.toggle("settings-open")};
 $("mobileScrim").onclick=closeMobilePanels;
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
- window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+ window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=21",{updateViaCache:"none"}).catch(()=>{}));
 }
 
 syncButtons();ps.value="pepsi";$("backProduct").value="pepsi";$("backOrientation").value="short";addStack();
