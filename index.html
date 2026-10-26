@@ -103,7 +103,8 @@ const PRODUCTS=[
  {id:"dr-pepper-cream-soda",name:"Dr Pepper & Cream Soda",color:"#b78a5b"},
  {id:"dr-pepper-zero-cream-soda",name:"Dr Pepper Zero Sugar & Cream Soda",color:"#b99a5a"},
  {id:"dr-pepper-cherry",name:"Dr Pepper Cherry",color:"#d71943"},
- {id:"dr-pepper-zero-cherry",name:"Dr Pepper Cherry Zero Sugar",color:"#bd1740"}];
+ {id:"dr-pepper-zero-cherry",name:"Dr Pepper Cherry Zero Sugar",color:"#bd1740"},
+ {id:"coke",name:"Coca-Cola",color:"#e41d2d"}];
 PRODUCTS.forEach(p=>{let o=document.createElement("option");o.value=p.id;o.textContent=p.name;document.getElementById("mixedFrontProduct").appendChild(o)});
 const STANDARD={long:{w:1515,h:471},short:{w:460,h:471}};
 const TWENTYFOUR={long:{w:2200,h:733},short:{w:1260,h:733}};
@@ -121,7 +122,8 @@ const $=id=>document.getElementById(id), products=$("products"), ps=$("productSe
 const PRODUCT_GROUPS=[
  {name:"Pepsi",prefix:"pepsi",matches:p=>p.id.includes("pepsi")},
  {name:"Mountain Dew",prefix:"dew",matches:p=>p.id.includes("mtn-dew")},
- {name:"Dr Pepper",prefix:"drpepper",matches:p=>p.id.includes("dr-pepper")}
+ {name:"Dr Pepper",prefix:"drpepper",matches:p=>p.id.includes("dr-pepper")},
+ {name:"Coca-Cola",prefix:"coke",matches:p=>p.id==="coke"}
 ];
 const productButtons=new Map(), productGroupById=new Map();
 PRODUCT_GROUPS.forEach((group,groupIndex)=>{
