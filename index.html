@@ -46,11 +46,11 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 }
 .mobile-only{display:none}
 .case24{display:block!important;margin:0!important;padding:0!important;}
-.export-overlay{position:fixed;inset:0;z-index:100;background:#0008;display:flex;align-items:center;justify-content:center;padding:15px}.export-dialog{background:white;border-radius:12px;padding:22px;width:min(430px,100%);box-shadow:0 12px 45px #0004}.export-dialog h3{margin:0 0 8px}.export-choice{display:flex;align-items:center;gap:10px;margin:13px 0;font-size:14px}.export-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}.export-actions button{padding:10px 14px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer}.export-actions .primary{background:#111;color:#fff}.export-status{font-size:12px;color:#555;min-height:18px}
+.export-overlay{position:fixed;inset:0;z-index:100;background:#0008;display:flex;align-items:center;justify-content:center;padding:15px}.export-dialog{background:white;border-radius:12px;padding:22px;width:min(430px,100%);box-shadow:0 12px 45px #0004}.export-dialog h3{margin:0 0 8px}.export-choice{display:flex;align-items:center;gap:10px;margin:13px 0;font-size:14px}.export-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}.export-actions button{padding:10px 14px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer}.export-actions .primary{background:#111;color:#fff}.export-status{font-size:12px;color:#555;min-height:18px}.export-dialog{width:min(1100px,100%);max-height:95dvh;overflow:auto}.export-preview-wrap{background:#eef1f5;border:1px solid #ddd;border-radius:8px;min-height:120px;max-height:58dvh;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:12px}.export-preview-wrap img{display:block;max-width:100%;height:auto;object-fit:contain}.export-preview-wrap.zoomed{justify-content:flex-start}.export-preview-wrap.zoomed img{max-width:none}.export-choice{display:inline-flex;margin:8px 15px 8px 0}.export-dialog h3{margin-bottom:5px}
 </style></head>
 <body><div class="app">
 <aside class="left"><h2>Display Builder</h2><div class="sub">12-pack + 24-pack + 6-pack shell assets</div><div id="products"></div></aside>
-<main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="exportBtn">Export Image</button><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
+<main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="exportBtn">Preview Display</button><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
 <div class="stage"><div class="stage-title" id="viewTitle">Front view</div><div id="build" class="build"></div><div class="floor"></div></div></main>
 <aside class="right"><h3>Stack settings</h3>
 <div class="field"><label>PACKAGE</label><select id="packageType"><option value="12">12-Pack</option><option value="24">24-Pack Slab</option><option value="6pk">6-Pack .5L Shell</option></select></div>
@@ -82,7 +82,7 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 <div class="info">Each selected stack is one physical row position. The FRONT section and optional BACK section are independent: product, facings, depth heights, package, and orientation can differ. Back depth heights are entered backside → inward. This allows Pepsi long-side from the front and Dew short-side from the back in the same physical row. 12-pack assets use *-12-long/short.png. 24-pack assets use *-24-long/short.png. Mixed rows split the front depth between two products. 6-pack shell assets use *-6pk-long/short.png. 6-pack shells are available for Pepsi, Diet Pepsi, Mtn Dew, Diet Mtn Dew, Dr Pepper, and Diet Dr Pepper.</div>
 <div id="counts" class="counts"></div>
 </aside><div id="mobileScrim" class="mobile-scrim"></div></div>
-<div id="exportOverlay" class="export-overlay" hidden style="display:none" role="dialog" aria-modal="true" aria-label="Export display image"><div class="export-dialog"><h3>Export display image</h3><p style="font-size:13px;color:#555">Choose the views to include. Backside is omitted automatically when no backside has been built.</p><div id="exportChoices"></div><div id="exportStatus" class="export-status"></div><div class="export-actions"><button id="exportCancel">Cancel</button><button id="exportDownload" class="primary">Download PNG</button></div></div></div>
+<div id="exportOverlay" class="export-overlay" hidden style="display:none" role="dialog" aria-modal="true" aria-label="Preview display image"><div class="export-dialog"><h3>Preview display</h3><p style="font-size:13px;color:#555">Select the views to include. The preview updates automatically; empty backside views are omitted.</p><div id="exportChoices"></div><div id="exportStatus" class="export-status" aria-live="polite"></div><div id="exportPreviewWrap" class="export-preview-wrap"><img id="exportPreviewImage" alt="Preview of the combined display views" hidden></div><div class="export-actions"><button id="exportZoom" type="button">Zoom in</button><button id="exportCancel" type="button">Close Preview</button><button id="exportDownload" class="primary" type="button" disabled>Download PNG</button></div></div></div>
 <script>
 const PRODUCTS=[
 {id:"pepsi",name:"Pepsi",color:"#1261c9"},{id:"diet-pepsi",name:"Diet Pepsi",color:"#bbb"},
@@ -489,19 +489,29 @@ function render(){
  // Four-view PNG export: render the existing geometry, not an AI approximation.
  const EXPORT_VIEWS=[{id:"front",title:"Front side",btn:"frontBtn"},{id:"right",title:"Right side",btn:"rightBtn"},{id:"back",title:"Backside",btn:"backBtn"},{id:"left",title:"Left side",btn:"leftBtn"}];
  function hasViewContent(id){return id==="back"?stacks.some(s=>s.backEnabled):id==="front"?stacks.some(s=>s.frontEnabled!==false):stacks.some(s=>s.frontEnabled!==false||s.backEnabled)}
- $("exportBtn").onclick=()=>{
-   if(!stacks.length){alert("Add a display stack before exporting.");return;}
-   const choices=$("exportChoices");choices.replaceChildren();
-   EXPORT_VIEWS.filter(v=>hasViewContent(v.id)).forEach(v=>{
-     const row=document.createElement("label");row.className="export-choice";
-     const cb=document.createElement("input");cb.type="checkbox";cb.value=v.id;cb.checked=true;
-     row.append(cb,document.createTextNode(v.title));choices.appendChild(row);
-   });
-   $("exportStatus").textContent="";
-   $("exportOverlay").hidden=false;$("exportOverlay").style.display="flex";
- };
- $("exportCancel").onclick=()=>{$("exportOverlay").hidden=true;$("exportOverlay").style.display="none"};
- function exportWaitForImages(images){return Promise.all(images.map(im=>{
+   let previewBlob=null, previewUrl=null, previewSequence=0, previewBusy=false;
+  function clearPreviewUrl(){if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null;}}
+  function closePreview(){previewSequence++;$("exportOverlay").hidden=true;$("exportOverlay").style.display="none";clearPreviewUrl();previewBlob=null;$("exportPreviewImage").hidden=true;$("exportPreviewImage").removeAttribute("src");$("exportDownload").disabled=true;}
+  $("exportBtn").onclick=()=>{
+    if(!stacks.length){alert("Add a display stack before previewing.");return;}
+    const choices=$("exportChoices");choices.replaceChildren();
+    EXPORT_VIEWS.filter(v=>hasViewContent(v.id)).forEach(v=>{
+      const row=document.createElement("label");row.className="export-choice";
+      const cb=document.createElement("input");cb.type="checkbox";cb.value=v.id;cb.checked=true;
+      cb.addEventListener("change",requestPreview);
+      row.append(cb,document.createTextNode(v.title));choices.appendChild(row);
+    });
+    $("exportPreviewWrap").classList.remove("zoomed");$("exportZoom").textContent="Zoom in";
+    $("exportOverlay").hidden=false;$("exportOverlay").style.display="flex";
+    requestPreview();
+  };
+  $("exportCancel").onclick=closePreview;
+  $("exportZoom").onclick=()=>{
+    const wrap=$("exportPreviewWrap"),zoom=wrap.classList.toggle("zoomed");
+    $("exportZoom").textContent=zoom?"Fit to window":"Zoom in";
+    $("exportPreviewImage").style.width=zoom?"auto":"100%";
+  };
+function exportWaitForImages(images){return Promise.all(images.map(im=>{
    if(im.complete)return Promise.resolve();
    return new Promise(resolve=>{im.addEventListener("load",resolve,{once:true});im.addEventListener("error",resolve,{once:true});});
  }));}
@@ -564,35 +574,44 @@ function render(){
    });
    return canvas;
  }
- $("exportDownload").onclick=async()=>{
-   const ids=[...$("exportChoices").querySelectorAll("input:checked")].map(cb=>cb.value);
-   if(!ids.length){$("exportStatus").textContent="Select at least one view.";return;}
-   const button=$("exportDownload"),oldView=currentView,oldIndex=selectedIndex;
-   button.disabled=true;$("exportStatus").textContent="Preparing high-resolution image…";
-   try{
-     // Hide the modal while rendering to avoid interfering with screen layout.
-     $("exportOverlay").style.display="none";
-     const panels=[];
-     for(const v of EXPORT_VIEWS.filter(v=>ids.includes(v.id))){
-       const canvas=await exportCaptureView(v.id);
-       panels.push({id:v.id,title:v.title,canvas});
-     }
-     const result=exportCompose(panels);
-     const blob=await new Promise(resolve=>result.toBlob(resolve,"image/png"));
-     if(!blob)throw new Error("The PNG could not be created.");
-     const url=URL.createObjectURL(blob),a=document.createElement("a");
-     a.href=url;a.download="display-builder-export.png";document.body.appendChild(a);a.click();a.remove();
-     setTimeout(()=>URL.revokeObjectURL(url),30000);
-     $("exportStatus").textContent="PNG generated.";
-   }catch(err){console.error(err);$("exportStatus").textContent="Export failed: "+err.message;}
-   finally{
-     currentView=oldView;selectedIndex=oldIndex;
-     $("viewTitle").textContent=EXPORT_VIEWS.find(v=>v.id===oldView).title;
-     EXPORT_VIEWS.forEach(v=>$(v.btn).classList.toggle("active",v.id===oldView));
-     render();$("exportOverlay").style.display="flex";button.disabled=false;
-   }
- };
-
+   async function requestPreview(){
+    const sequence=++previewSequence;
+    const ids=[...$("exportChoices").querySelectorAll("input:checked")].map(cb=>cb.value);
+    if(!ids.length){$("exportStatus").textContent="Select at least one view.";$("exportDownload").disabled=true;return;}
+    // Keep DOM view rendering serialized to avoid changing the user's live view mid-capture.
+    if(previewBusy)return;
+    previewBusy=true;
+    const oldView=currentView,oldIndex=selectedIndex;
+    $("exportDownload").disabled=true;$("exportStatus").textContent="Preparing preview…";
+    try{
+      const panels=[];
+      for(const v of EXPORT_VIEWS.filter(v=>ids.includes(v.id))){
+        const canvas=await exportCaptureView(v.id);
+        panels.push({id:v.id,title:v.title,canvas});
+      }
+      const result=exportCompose(panels);
+      const blob=await new Promise(resolve=>result.toBlob(resolve,"image/png"));
+      if(!blob)throw new Error("The image could not be created.");
+      if(sequence===previewSequence && !$("exportOverlay").hidden){
+        clearPreviewUrl();previewBlob=blob;previewUrl=URL.createObjectURL(blob);
+        $("exportPreviewImage").src=previewUrl;$("exportPreviewImage").hidden=false;
+        $("exportDownload").disabled=false;$("exportStatus").textContent="Preview ready.";
+      }
+    }catch(err){console.error(err);if(sequence===previewSequence)$("exportStatus").textContent="Preview failed: "+err.message;}
+    finally{
+      currentView=oldView;selectedIndex=oldIndex;
+      $("viewTitle").textContent=EXPORT_VIEWS.find(v=>v.id===oldView).title;
+      EXPORT_VIEWS.forEach(v=>$(v.btn).classList.toggle("active",v.id===oldView));
+      render();previewBusy=false;
+      if(sequence!==previewSequence && !$("exportOverlay").hidden)requestPreview();
+    }
+  }
+  $("exportDownload").onclick=()=>{
+    if(!previewBlob)return;
+    const url=URL.createObjectURL(previewBlob),a=document.createElement("a");
+    a.href=url;a.download="display-builder-export.png";document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+  };
 new ResizeObserver(fitBuild).observe($("build").parentElement);
 function renderCounts(){let totals={},grand=0;function add(pkg,prod,fac,hs){let n=hs.reduce((a,b)=>a+b,0)*fac,key=pkg+"|"+prod;totals[key]=(totals[key]||0)+n;grand+=n}stacks.forEach(s=>{if(s.frontEnabled!==false){const hs=s.depthHeights||[s.height];if(s.mixedEnabled){hs.forEach((h,i)=>add(s.packageType||"12",i<Math.min(hs.length,s.mixedFrontDepth||1)?s.mixedFrontProduct:s.product,s.facings,[h]))}else add(s.packageType||"12",s.product,s.facings,hs)}if(s.backEnabled){let b=backAsStack(s);add(b.packageType,b.product,b.facings,b.depthHeights)}});let h="<b>Case count</b>";PRODUCTS.forEach(p=>{["12","24","6pk"].forEach(pkg=>{let key=pkg+"|"+p.id;if(totals[key])h+=`<div class="countrow"><span>${p.name} ${pkg==="6pk"?"6pk":pkg==="24"?"24pk":"12pk"}</span><b>${totals[key]}</b></div>`})});h+=`<hr><div class="countrow"><b>Total</b><b>${grand}</b></div>`;$("counts").innerHTML=h}
 $("mixedEnabled").onchange=()=>{toggleMixedFields();updateSelected()};
@@ -710,7 +729,8 @@ $("mobileProductsBtn").onclick=()=>{document.body.classList.remove("settings-ope
 $("mobileSettingsBtn").onclick=()=>{document.body.classList.remove("products-open");document.body.classList.toggle("settings-open")};
 $("mobileScrim").onclick=closeMobilePanels;
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
- window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=21",{updateViaCache:"none"}).catch(()=>{}));
+  window.addEventListener("pageshow",()=>{sessionStorage.removeItem("display-builder-sw-reloaded")},{once:true});
+ window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(reg=>{reg.update().catch(()=>{});navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!sessionStorage.getItem("display-builder-sw-reloaded")){sessionStorage.setItem("display-builder-sw-reloaded","1");location.reload();}});}).catch(()=>{}));
 }
 
 syncButtons();ps.value="pepsi";$("backProduct").value="pepsi";$("backOrientation").value="short";addStack();
