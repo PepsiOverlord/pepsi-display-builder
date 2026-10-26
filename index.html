@@ -14,6 +14,7 @@
 .left,.right{background:#fff;padding:12px}.left{border-right:1px solid #ddd}.right{border-left:1px solid #ddd}
 h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14px}
 .prod{width:100%;text-align:left;padding:9px;margin-bottom:6px;border:1px solid #ddd;border-radius:7px;background:#fff;font-weight:700;cursor:pointer}
+.product-group{margin:0 0 7px;border:1px solid #dce1e8;border-radius:8px;overflow:hidden;background:#fff}.product-group summary{padding:10px 8px;font-size:12px;font-weight:800;cursor:pointer;background:#f4f6f9;list-style:none;display:flex;align-items:center;justify-content:space-between}.product-group summary::-webkit-details-marker{display:none}.product-group summary:after{content:"▸";font-size:13px}.product-group[open] summary:after{content:"▾"}.product-group-items{padding:7px}.product-group .prod{font-size:11px;padding:7px 5px;margin-bottom:4px}.product-group .prod:last-child{margin-bottom:0}.product-group[hidden],.prod[hidden]{display:none!important}
 .prod.active{outline:2px solid #111}.prod:before{content:"";display:inline-block;width:6px;height:22px;border-radius:4px;vertical-align:middle;margin-right:8px;background:var(--c)}
 .main{padding:12px}.toolbar{display:flex;gap:7px;margin-bottom:10px}.toolbar button{padding:7px 12px;border:1px solid #ccc;background:#fff;border-radius:5px;cursor:pointer}.toolbar .active{background:#111;color:#fff}
 .stage{position:relative;height:520px;background:#fff;border:1px solid #ddd;border-radius:12px;overflow:auto}.stage-title{padding:15px;font-weight:700;font-size:12px}
@@ -45,10 +46,11 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 }
 .mobile-only{display:none}
 .case24{display:block!important;margin:0!important;padding:0!important;}
+.export-overlay{position:fixed;inset:0;z-index:100;background:#0008;display:flex;align-items:center;justify-content:center;padding:15px}.export-dialog{background:white;border-radius:12px;padding:22px;width:min(430px,100%);box-shadow:0 12px 45px #0004}.export-dialog h3{margin:0 0 8px}.export-choice{display:flex;align-items:center;gap:10px;margin:13px 0;font-size:14px}.export-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}.export-actions button{padding:10px 14px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer}.export-actions .primary{background:#111;color:#fff}.export-status{font-size:12px;color:#555;min-height:18px}.export-dialog{width:min(1100px,100%);max-height:95dvh;overflow:auto}.export-preview-wrap{background:#eef1f5;border:1px solid #ddd;border-radius:8px;min-height:120px;max-height:58dvh;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:12px}.export-preview-wrap img{display:block;max-width:100%;height:auto;object-fit:contain}.export-preview-wrap.zoomed{justify-content:flex-start}.export-preview-wrap.zoomed img{max-width:none}.export-choice{display:inline-flex;margin:8px 15px 8px 0}.export-dialog h3{margin-bottom:5px}
 </style></head>
 <body><div class="app">
 <aside class="left"><h2>Display Builder</h2><div class="sub">12-pack + 24-pack + 6-pack shell assets</div><div id="products"></div></aside>
-<main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
+<main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="exportBtn">Preview Display</button><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
 <div class="stage"><div class="stage-title" id="viewTitle">Front view</div><div id="build" class="build"></div><div class="floor"></div></div></main>
 <aside class="right"><h3>Stack settings</h3>
 <div class="field"><label>PACKAGE</label><select id="packageType"><option value="12">12-Pack</option><option value="24">24-Pack Slab</option><option value="6pk">6-Pack .5L Shell</option></select></div>
@@ -80,6 +82,7 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 <div class="info">Each selected stack is one physical row position. The FRONT section and optional BACK section are independent: product, facings, depth heights, package, and orientation can differ. Back depth heights are entered backside → inward. This allows Pepsi long-side from the front and Dew short-side from the back in the same physical row. 12-pack assets use *-12-long/short.png. 24-pack assets use *-24-long/short.png. Mixed rows split the front depth between two products. 6-pack shell assets use *-6pk-long/short.png. 6-pack shells are available for Pepsi, Diet Pepsi, Mtn Dew, Diet Mtn Dew, Dr Pepper, and Diet Dr Pepper.</div>
 <div id="counts" class="counts"></div>
 </aside><div id="mobileScrim" class="mobile-scrim"></div></div>
+<div id="exportOverlay" class="export-overlay" hidden style="display:none" role="dialog" aria-modal="true" aria-label="Preview display image"><div class="export-dialog"><h3>Preview display</h3><p style="font-size:13px;color:#555">Select the views to include. The preview updates automatically; empty backside views are omitted.</p><div id="exportChoices"></div><div id="exportStatus" class="export-status" aria-live="polite"></div><div id="exportPreviewWrap" class="export-preview-wrap"><img id="exportPreviewImage" alt="Preview of the combined display views" hidden></div><div class="export-actions"><button id="exportZoom" type="button">Zoom in</button><button id="exportCancel" type="button">Close Preview</button><button id="exportDownload" class="primary" type="button" disabled>Download PNG</button></div></div></div>
 <script>
 const PRODUCTS=[
 {id:"pepsi",name:"Pepsi",color:"#1261c9"},{id:"diet-pepsi",name:"Diet Pepsi",color:"#bbb"},
@@ -102,23 +105,89 @@ const PRODUCTS=[
  {id:"dr-pepper-cream-soda",name:"Dr Pepper & Cream Soda",color:"#b78a5b"},
  {id:"dr-pepper-zero-cream-soda",name:"Dr Pepper Zero Sugar & Cream Soda",color:"#b99a5a"},
  {id:"dr-pepper-cherry",name:"Dr Pepper Cherry",color:"#d71943"},
- {id:"dr-pepper-zero-cherry",name:"Dr Pepper Cherry Zero Sugar",color:"#bd1740"}];
+ {id:"dr-pepper-zero-cherry",name:"Dr Pepper Cherry Zero Sugar",color:"#bd1740"},
+
+ {id:"7up",name:"7UP",color:"#27a443"},
+ {id:"dr-pepper-blackberry",name:"Dr Pepper Blackberry (long side only)",color:"#642d6b"},
+ {id:"dr-pepper-strawberries-&-cream",name:"Dr Pepper Strawberries & Cream",color:"#dd7f9c"},
+ {id:"dr-pepper-zero-strawberries-&-cream",name:"Dr Pepper Zero Strawberries & Cream",color:"#b88d9d"},
+ {id:"coke",name:"Coca-Cola",color:"#e41d2d"}];
 PRODUCTS.forEach(p=>{let o=document.createElement("option");o.value=p.id;o.textContent=p.name;document.getElementById("mixedFrontProduct").appendChild(o)});
 const STANDARD={long:{w:1515,h:471},short:{w:460,h:471}};
 const TWENTYFOUR={long:{w:2200,h:733},short:{w:1260,h:733}};
-const TWENTYFOUR_PRODUCTS=new Set(["pepsi","diet-pepsi","pepsi-wild-cherry"]);
+const TWENTYFOUR_PRODUCTS=new Set(["diet-dr-pepper","diet-mtn-dew","diet-pepsi","dr-pepper","dr-pepper-zero","mtn-dew","mtn-dew-baja-blast","mtn-dew-zero","pepsi","pepsi-wild-cherry","pepsi-zero"]);
 // Independent physical footprint for loaded 6-pack .5L shells.
 // Long side = 22 in, short side = 15 in (1.25 ft).
 // Provisional loaded-shell height; calibrate with a measured shell if available.
 const SIXPK_DIMENSIONS={long:{inches:22},short:{inches:15},heightInches:10.5};
 // Approximate 12-pack layer height establishes one scale for all packages.
 const TWELVEPACK_HEIGHT_INCHES=5;
-const SIXPK_PRODUCTS=new Set(["pepsi","diet-pepsi","mtn-dew","diet-mtn-dew","dr-pepper","diet-dr-pepper"]);
+const SIXPK_PRODUCTS=new Set(["diet-dr-pepper","diet-mtn-dew","diet-pepsi","dr-pepper","mtn-dew","pepsi"]);
 let selectedProduct="pepsi", selectedIndex=-1, stacks=[], currentView="front";
 const $=id=>document.getElementById(id), products=$("products"), ps=$("productSelect");
-PRODUCTS.forEach(p=>{let b=document.createElement("button");b.className="prod";b.style.setProperty("--c",p.color);b.textContent=p.name;b.onclick=()=>{selectedProduct=p.id;syncButtons();if(currentView==="back"){$("backProduct").value=p.id;if(selectedIndex>=0){const s=stacks[selectedIndex];s.backEnabled=true;s.backProduct=p.id;$("backEnabled").checked=true;toggleBackFields();render();}}else{ps.value=p.id;if(selectedIndex>=0){stacks[selectedIndex].product=p.id;render();}}};products.appendChild(b);let o=document.createElement("option");o.value=p.id;o.textContent=p.name;ps.appendChild(o);let bo=document.createElement("option");bo.value=p.id;bo.textContent=p.name;$("backProduct").appendChild(bo)});
-function syncButtons(){[...products.children].forEach((b,i)=>b.classList.toggle("active",PRODUCTS[i].id===selectedProduct))}
-function asset(id,o,pkg){if(pkg==="6pk")return `assets/${id}-6pk-${o}.png`;if(pkg==="24")return `assets/${id}-24-${o}.png`;return `assets/${id}-12-${o}.png`}
+// Organize the sidebar by parent brand without changing product IDs or assets.
+const PRODUCT_GROUPS=[
+ {name:"Pepsi",prefix:"pepsi",matches:p=>p.id.includes("pepsi")},
+ {name:"Mountain Dew",prefix:"dew",matches:p=>p.id.includes("mtn-dew")},
+ {name:"Dr Pepper",prefix:"drpepper",matches:p=>p.id.includes("dr-pepper")},
+ {name:"Coca-Cola",prefix:"coke",matches:p=>p.id==="coke"},
+  {name:"7UP",prefix:"7up",matches:p=>p.id==="7up"}
+];
+// Preferred first flavors in each expandable brand list; other flavors retain their order.
+const PRIORITY_FLAVORS={
+ Pepsi:["pepsi","diet-pepsi","pepsi-zero"],
+ "Mountain Dew":["mtn-dew","diet-mtn-dew","mtn-dew-zero","mtn-dew-baja-blast"],
+ "Dr Pepper":["dr-pepper","diet-dr-pepper","dr-pepper-zero"]
+};
+const productButtons=new Map(), productGroupById=new Map();
+PRODUCT_GROUPS.forEach((group,groupIndex)=>{
+ const preferred=PRIORITY_FLAVORS[group.name]||[];
+ const members=PRODUCTS.filter(group.matches).sort((a,b)=>{
+  const ai=preferred.indexOf(a.id),bi=preferred.indexOf(b.id);
+  return (ai<0?Infinity:ai)-(bi<0?Infinity:bi);
+ });
+ if(!members.length)return;
+ const section=document.createElement("details");
+ section.className="product-group";
+ section.open=groupIndex===0;
+ const heading=document.createElement("summary");heading.textContent=group.name;
+ const items=document.createElement("div");items.className="product-group-items";
+ section.append(heading,items);products.appendChild(section);
+ members.forEach(p=>{
+  const b=document.createElement("button");b.type="button";b.className="prod";
+  b.style.setProperty("--c",p.color);b.textContent=p.name;
+  b.onclick=()=>{selectedProduct=p.id;syncButtons();if(currentView==="back"){$("backProduct").value=p.id;if(selectedIndex>=0){const s=stacks[selectedIndex];s.backEnabled=true;s.backProduct=p.id;$("backEnabled").checked=true;toggleBackFields();render();}}else{ps.value=p.id;if(selectedIndex>=0){stacks[selectedIndex].product=p.id;render();}}};
+  items.appendChild(b);productButtons.set(p.id,b);productGroupById.set(p.id,section);
+ });
+});
+// Keep the existing settings dropdowns and mixed-depth product choices intact.
+PRODUCTS.forEach(p=>{
+ const o=document.createElement("option");o.value=p.id;o.textContent=p.name;ps.appendChild(o);
+ const bo=document.createElement("option");bo.value=p.id;bo.textContent=p.name;$("backProduct").appendChild(bo);
+});
+const TWELVE_PRODUCTS=new Set(["7up","caffeine-free-diet-pepsi","caffeine-free-pepsi","coke","diet-dr-pepper","diet-mtn-dew","diet-pepsi","dr-pepper","dr-pepper-blackberry","dr-pepper-cherry","dr-pepper-cream-soda","dr-pepper-strawberries-&-cream","dr-pepper-zero","dr-pepper-zero-cherry","dr-pepper-zero-cream-soda","dr-pepper-zero-strawberries-&-cream","mtn-dew","mtn-dew-baja-blast","mtn-dew-code-red","mtn-dew-dirty","mtn-dew-voltage","mtn-dew-zero","mtn-dew-zero-baja-blast","mtn-dew-zero-code-red","pepsi","pepsi-real-sugar","pepsi-wild-cherry","pepsi-zero","pepsi-zero-wild-cherry"]);
+function availableForPackage(id,pkg){
+ if(pkg==="6pk")return SIXPK_PRODUCTS.has(id);
+ if(pkg==="24")return TWENTYFOUR_PRODUCTS.has(id);
+ return true;
+}
+function refreshProductSidebar(){
+ const pkg=currentView==="back"?$("backPackageType").value:$("packageType").value;
+ productButtons.forEach((b,id)=>{b.hidden=!availableForPackage(id,pkg);});
+ products.querySelectorAll(".product-group").forEach(group=>{
+  group.hidden=![...group.querySelectorAll(".prod")].some(b=>!b.hidden);
+ });
+}
+function syncButtons(){
+ refreshProductSidebar();
+ productButtons.forEach((b,id)=>b.classList.toggle("active",id===selectedProduct));
+ const group=productGroupById.get(selectedProduct);if(group && !group.hidden)group.open=true;
+}
+function missingBlackberryShort(){
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" width="460" height="471"><rect width="100%" height="100%" fill="#f2e9f3"/><text x="230" y="210" font-family="Arial" font-size="30" font-weight="bold" text-anchor="middle" fill="#57205e">BLACKBERRY</text><text x="230" y="250" font-family="Arial" font-size="21" text-anchor="middle" fill="#57205e">Short-side art needed</text></svg>';
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+function asset(id,o,pkg){if(id==="dr-pepper-blackberry" && pkg==="12" && o==="short")return missingBlackberryShort();if(pkg==="6pk")return `assets/${id}-6pk-${o}.png`;if(pkg==="24")return `assets/${id}-24-${o}.png`;return `assets/${id}-12-${o}.png`}
 function parseDepthHeights(){
  const depth=Math.max(1,+$("depth").value||1);
  let vals=$("depthHeights").value.split(",").map(v=>Math.max(1,Math.min(15,parseInt(v.trim())||0))).filter(Boolean);
@@ -437,6 +506,133 @@ function render(){
  fitBuild();
  renderCounts();
 }
+
+ // Four-view PNG export: render the existing geometry, not an AI approximation.
+ const EXPORT_VIEWS=[{id:"front",title:"Front side",btn:"frontBtn"},{id:"right",title:"Right side",btn:"rightBtn"},{id:"back",title:"Backside",btn:"backBtn"},{id:"left",title:"Left side",btn:"leftBtn"}];
+ function hasViewContent(id){return id==="back"?stacks.some(s=>s.backEnabled):id==="front"?stacks.some(s=>s.frontEnabled!==false):stacks.some(s=>s.frontEnabled!==false||s.backEnabled)}
+   let previewBlob=null, previewUrl=null, previewSequence=0, previewBusy=false;
+  function clearPreviewUrl(){if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null;}}
+  function closePreview(){previewSequence++;$("exportOverlay").hidden=true;$("exportOverlay").style.display="none";clearPreviewUrl();previewBlob=null;$("exportPreviewImage").hidden=true;$("exportPreviewImage").removeAttribute("src");$("exportDownload").disabled=true;}
+  $("exportBtn").onclick=()=>{
+    if(!stacks.length){alert("Add a display stack before previewing.");return;}
+    const choices=$("exportChoices");choices.replaceChildren();
+    EXPORT_VIEWS.filter(v=>hasViewContent(v.id)).forEach(v=>{
+      const row=document.createElement("label");row.className="export-choice";
+      const cb=document.createElement("input");cb.type="checkbox";cb.value=v.id;cb.checked=true;
+      cb.addEventListener("change",requestPreview);
+      row.append(cb,document.createTextNode(v.title));choices.appendChild(row);
+    });
+    $("exportPreviewWrap").classList.remove("zoomed");$("exportZoom").textContent="Zoom in";
+    $("exportOverlay").hidden=false;$("exportOverlay").style.display="flex";
+    requestPreview();
+  };
+  $("exportCancel").onclick=closePreview;
+  $("exportZoom").onclick=()=>{
+    const wrap=$("exportPreviewWrap"),zoom=wrap.classList.toggle("zoomed");
+    $("exportZoom").textContent=zoom?"Fit to window":"Zoom in";
+    $("exportPreviewImage").style.width=zoom?"auto":"100%";
+  };
+function exportWaitForImages(images){return Promise.all(images.map(im=>{
+   if(im.complete)return Promise.resolve();
+   return new Promise(resolve=>{im.addEventListener("load",resolve,{once:true});im.addEventListener("error",resolve,{once:true});});
+ }));}
+ function exportCaptureView(view){
+   currentView=view;render();
+   const build=$("build");
+   return exportWaitForImages([...build.querySelectorAll("img")]).then(()=>{
+     // Work in unscaled physical pixels so the export isn't limited by screen size.
+     const base=build.getBoundingClientRect();
+     const factor=base.width/Math.max(1,build.offsetWidth)||1;
+     const imgs=[...build.querySelectorAll("img")].filter(im=>im.complete&&im.naturalWidth>0);
+     const w=Math.max(1,Math.ceil(build.offsetWidth));
+     const h=Math.max(1,Math.ceil(build.offsetHeight));
+     const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+     const ctx=canvas.getContext("2d");
+     imgs.forEach(im=>{
+       const r=im.getBoundingClientRect();
+       const x=(r.left-base.left)/factor,y=(r.top-base.top)/factor;
+       const iw=r.width/factor,ih=r.height/factor;
+       // Images in the existing render already have the correct orientation and dimensions.
+       ctx.drawImage(im,x,y,iw,ih);
+     });
+     return canvas;
+   });
+ }
+ function exportCompose(panels){
+   const scale=2,pad=26,labelH=34,floorH=16,gap=28;
+   const maxPanelW=1080,maxPanelH=760;
+   const cells=panels.map(p=>{
+     const fit=Math.min(1,maxPanelW/p.canvas.width,maxPanelH/p.canvas.height);
+     return {...p,w:Math.ceil(p.canvas.width*fit),h:Math.ceil(p.canvas.height*fit)};
+   });
+   const rows=[];
+   if(cells.length===1)rows.push([cells[0]]);
+   else if(cells.length===2)rows.push(cells);
+   else if(cells.length===3){rows.push(cells.slice(0,2));rows.push(cells.slice(2));}
+   else {rows.push(cells.slice(0,2));rows.push(cells.slice(2,4));}
+   const rowWidths=rows.map(row=>row.reduce((n,c)=>n+c.w+pad*2,0)+gap*(row.length-1));
+   const rowHeights=rows.map(row=>Math.max(...row.map(c=>c.h))+labelH+floorH+pad*2+16);
+   const width=Math.max(...rowWidths),height=rowHeights.reduce((a,b)=>a+b,0)+gap*(rows.length-1);
+   const canvas=document.createElement("canvas");canvas.width=Math.ceil(width*scale);canvas.height=Math.ceil(height*scale);
+   const ctx=canvas.getContext("2d");ctx.scale(scale,scale);ctx.fillStyle="#fff";ctx.fillRect(0,0,width,height);
+   let y=0;
+   rows.forEach((row,ri)=>{
+     let x=(width-rowWidths[ri])/2;
+     row.forEach(c=>{
+       ctx.fillStyle="#222";ctx.font="bold 20px Arial, sans-serif";ctx.fillText(c.title,x+pad,y+25);
+       const imageY=y+labelH+pad+Math.max(...row.map(v=>v.h))-c.h;
+       ctx.drawImage(c.canvas,x+pad,imageY,c.w,c.h);
+       ctx.fillStyle="#c89951";ctx.fillRect(x+pad-8,y+labelH+pad+Math.max(...row.map(v=>v.h)),c.w+16,floorH);
+       if(c.id==="left"||c.id==="right"){
+         ctx.font="bold 12px Arial";ctx.fillStyle="#333";
+         const first=c.id==="left"?"BACK":"FRONT",last=c.id==="left"?"FRONT":"BACK";
+         ctx.fillText(first,x+pad,y+labelH+pad+Math.max(...row.map(v=>v.h))+floorH+14);
+         ctx.textAlign="right";ctx.fillText(last,x+pad+c.w,y+labelH+pad+Math.max(...row.map(v=>v.h))+floorH+14);ctx.textAlign="left";
+       }
+       x+=c.w+pad*2+gap;
+     });
+     y+=rowHeights[ri]+gap;
+   });
+   return canvas;
+ }
+   async function requestPreview(){
+    const sequence=++previewSequence;
+    const ids=[...$("exportChoices").querySelectorAll("input:checked")].map(cb=>cb.value);
+    if(!ids.length){$("exportStatus").textContent="Select at least one view.";$("exportDownload").disabled=true;return;}
+    // Keep DOM view rendering serialized to avoid changing the user's live view mid-capture.
+    if(previewBusy)return;
+    previewBusy=true;
+    const oldView=currentView,oldIndex=selectedIndex;
+    $("exportDownload").disabled=true;$("exportStatus").textContent="Preparing preview…";
+    try{
+      const panels=[];
+      for(const v of EXPORT_VIEWS.filter(v=>ids.includes(v.id))){
+        const canvas=await exportCaptureView(v.id);
+        panels.push({id:v.id,title:v.title,canvas});
+      }
+      const result=exportCompose(panels);
+      const blob=await new Promise(resolve=>result.toBlob(resolve,"image/png"));
+      if(!blob)throw new Error("The image could not be created.");
+      if(sequence===previewSequence && !$("exportOverlay").hidden){
+        clearPreviewUrl();previewBlob=blob;previewUrl=URL.createObjectURL(blob);
+        $("exportPreviewImage").src=previewUrl;$("exportPreviewImage").hidden=false;
+        $("exportDownload").disabled=false;$("exportStatus").textContent="Preview ready.";
+      }
+    }catch(err){console.error(err);if(sequence===previewSequence)$("exportStatus").textContent="Preview failed: "+err.message;}
+    finally{
+      currentView=oldView;selectedIndex=oldIndex;
+      $("viewTitle").textContent=EXPORT_VIEWS.find(v=>v.id===oldView).title;
+      EXPORT_VIEWS.forEach(v=>$(v.btn).classList.toggle("active",v.id===oldView));
+      render();previewBusy=false;
+      if(sequence!==previewSequence && !$("exportOverlay").hidden)requestPreview();
+    }
+  }
+  $("exportDownload").onclick=()=>{
+    if(!previewBlob)return;
+    const url=URL.createObjectURL(previewBlob),a=document.createElement("a");
+    a.href=url;a.download="display-builder-export.png";document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+  };
 new ResizeObserver(fitBuild).observe($("build").parentElement);
 function renderCounts(){let totals={},grand=0;function add(pkg,prod,fac,hs){let n=hs.reduce((a,b)=>a+b,0)*fac,key=pkg+"|"+prod;totals[key]=(totals[key]||0)+n;grand+=n}stacks.forEach(s=>{if(s.frontEnabled!==false){const hs=s.depthHeights||[s.height];if(s.mixedEnabled){hs.forEach((h,i)=>add(s.packageType||"12",i<Math.min(hs.length,s.mixedFrontDepth||1)?s.mixedFrontProduct:s.product,s.facings,[h]))}else add(s.packageType||"12",s.product,s.facings,hs)}if(s.backEnabled){let b=backAsStack(s);add(b.packageType,b.product,b.facings,b.depthHeights)}});let h="<b>Case count</b>";PRODUCTS.forEach(p=>{["12","24","6pk"].forEach(pkg=>{let key=pkg+"|"+p.id;if(totals[key])h+=`<div class="countrow"><span>${p.name} ${pkg==="6pk"?"6pk":pkg==="24"?"24pk":"12pk"}</span><b>${totals[key]}</b></div>`})});h+=`<hr><div class="countrow"><b>Total</b><b>${grand}</b></div>`;$("counts").innerHTML=h}
 $("mixedEnabled").onchange=()=>{toggleMixedFields();updateSelected()};
@@ -464,6 +660,7 @@ $("packageType").onchange=()=>{
      $("depthHeights").value=Array(d).fill(11).join(",");
    }
  }
+ refreshProductSidebar();
  updateSelected();
 };
 ["facings","caseHeight","orientation"].forEach(id=>$(id).oninput=updateSelected);
@@ -553,7 +750,8 @@ $("mobileProductsBtn").onclick=()=>{document.body.classList.remove("settings-ope
 $("mobileSettingsBtn").onclick=()=>{document.body.classList.remove("products-open");document.body.classList.toggle("settings-open")};
 $("mobileScrim").onclick=closeMobilePanels;
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
- window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=21",{updateViaCache:"none"}).catch(()=>{}));
+  window.addEventListener("pageshow",()=>{sessionStorage.removeItem("display-builder-sw-reloaded")},{once:true});
+ window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(reg=>{reg.update().catch(()=>{});navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!sessionStorage.getItem("display-builder-sw-reloaded")){sessionStorage.setItem("display-builder-sw-reloaded","1");location.reload();}});}).catch(()=>{}));
 }
 
 syncButtons();ps.value="pepsi";$("backProduct").value="pepsi";$("backOrientation").value="short";addStack();
