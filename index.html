@@ -127,9 +127,19 @@ const PRODUCT_GROUPS=[
  {name:"Dr Pepper",prefix:"drpepper",matches:p=>p.id.includes("dr-pepper")},
  {name:"Coca-Cola",prefix:"coke",matches:p=>p.id==="coke"}
 ];
+// Preferred first flavors in each expandable brand list; other flavors retain their order.
+const PRIORITY_FLAVORS={
+ Pepsi:["pepsi","diet-pepsi","pepsi-zero"],
+ "Mountain Dew":["mtn-dew","diet-mtn-dew","mtn-dew-zero","mtn-dew-baja-blast"],
+ "Dr Pepper":["dr-pepper","diet-dr-pepper","dr-pepper-zero"]
+};
 const productButtons=new Map(), productGroupById=new Map();
 PRODUCT_GROUPS.forEach((group,groupIndex)=>{
- const members=PRODUCTS.filter(group.matches);
+ const preferred=PRIORITY_FLAVORS[group.name]||[];
+ const members=PRODUCTS.filter(group.matches).sort((a,b)=>{
+  const ai=preferred.indexOf(a.id),bi=preferred.indexOf(b.id);
+  return (ai<0?Infinity:ai)-(bi<0?Infinity:bi);
+ });
  if(!members.length)return;
  const section=document.createElement("details");
  section.className="product-group";
