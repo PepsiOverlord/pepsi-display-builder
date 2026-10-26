@@ -187,7 +187,11 @@ function missingBlackberryShort(){
  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="460" height="471"><rect width="100%" height="100%" fill="#f2e9f3"/><text x="230" y="210" font-family="Arial" font-size="30" font-weight="bold" text-anchor="middle" fill="#57205e">BLACKBERRY</text><text x="230" y="250" font-family="Arial" font-size="21" text-anchor="middle" fill="#57205e">Short-side art needed</text></svg>';
  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
-function asset(id,o,pkg){if(id==="dr-pepper-blackberry" && pkg==="12" && o==="short")return missingBlackberryShort();if(pkg==="6pk")return `assets/${id}-6pk-${o}.png`;if(pkg==="24")return `assets/${id}-24-${o}.png`;return `assets/${id}-12-${o}.png`}
+function asset(id,o,pkg){
+  if(pkg==="6pk") return `assets/${id}-6pk-${o}.png`;
+  if(pkg==="24") return `assets/${id}-24-${o}.png`;
+  return `assets/${id}-12-${o}.png`;
+}
 function parseDepthHeights(){
  const depth=Math.max(1,+$("depth").value||1);
  let vals=$("depthHeights").value.split(",").map(v=>Math.max(1,Math.min(15,parseInt(v.trim())||0))).filter(Boolean);
