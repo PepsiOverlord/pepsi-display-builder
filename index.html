@@ -46,10 +46,11 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 }
 .mobile-only{display:none}
 .case24{display:block!important;margin:0!important;padding:0!important;}
+.export-overlay{position:fixed;inset:0;z-index:100;background:#0008;display:flex;align-items:center;justify-content:center;padding:15px}.export-dialog{background:white;border-radius:12px;padding:22px;width:min(430px,100%);box-shadow:0 12px 45px #0004}.export-dialog h3{margin:0 0 8px}.export-choice{display:flex;align-items:center;gap:10px;margin:13px 0;font-size:14px}.export-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}.export-actions button{padding:10px 14px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer}.export-actions .primary{background:#111;color:#fff}.export-status{font-size:12px;color:#555;min-height:18px}
 </style></head>
 <body><div class="app">
 <aside class="left"><h2>Display Builder</h2><div class="sub">12-pack + 24-pack + 6-pack shell assets</div><div id="products"></div></aside>
-<main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
+<main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="exportBtn">Export Image</button><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
 <div class="stage"><div class="stage-title" id="viewTitle">Front view</div><div id="build" class="build"></div><div class="floor"></div></div></main>
 <aside class="right"><h3>Stack settings</h3>
 <div class="field"><label>PACKAGE</label><select id="packageType"><option value="12">12-Pack</option><option value="24">24-Pack Slab</option><option value="6pk">6-Pack .5L Shell</option></select></div>
@@ -81,6 +82,7 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 <div class="info">Each selected stack is one physical row position. The FRONT section and optional BACK section are independent: product, facings, depth heights, package, and orientation can differ. Back depth heights are entered backside → inward. This allows Pepsi long-side from the front and Dew short-side from the back in the same physical row. 12-pack assets use *-12-long/short.png. 24-pack assets use *-24-long/short.png. Mixed rows split the front depth between two products. 6-pack shell assets use *-6pk-long/short.png. 6-pack shells are available for Pepsi, Diet Pepsi, Mtn Dew, Diet Mtn Dew, Dr Pepper, and Diet Dr Pepper.</div>
 <div id="counts" class="counts"></div>
 </aside><div id="mobileScrim" class="mobile-scrim"></div></div>
+<div id="exportOverlay" class="export-overlay" hidden style="display:none" role="dialog" aria-modal="true" aria-label="Export display image"><div class="export-dialog"><h3>Export display image</h3><p style="font-size:13px;color:#555">Choose the views to include. Backside is omitted automatically when no backside has been built.</p><div id="exportChoices"></div><div id="exportStatus" class="export-status"></div><div class="export-actions"><button id="exportCancel">Cancel</button><button id="exportDownload" class="primary">Download PNG</button></div></div></div>
 <script>
 const PRODUCTS=[
 {id:"pepsi",name:"Pepsi",color:"#1261c9"},{id:"diet-pepsi",name:"Diet Pepsi",color:"#bbb"},
@@ -483,6 +485,114 @@ function render(){
  fitBuild();
  renderCounts();
 }
+
+ // Four-view PNG export: render the existing geometry, not an AI approximation.
+ const EXPORT_VIEWS=[{id:"front",title:"Front side",btn:"frontBtn"},{id:"right",title:"Right side",btn:"rightBtn"},{id:"back",title:"Backside",btn:"backBtn"},{id:"left",title:"Left side",btn:"leftBtn"}];
+ function hasViewContent(id){return id==="back"?stacks.some(s=>s.backEnabled):id==="front"?stacks.some(s=>s.frontEnabled!==false):stacks.some(s=>s.frontEnabled!==false||s.backEnabled)}
+ $("exportBtn").onclick=()=>{
+   if(!stacks.length){alert("Add a display stack before exporting.");return;}
+   const choices=$("exportChoices");choices.replaceChildren();
+   EXPORT_VIEWS.filter(v=>hasViewContent(v.id)).forEach(v=>{
+     const row=document.createElement("label");row.className="export-choice";
+     const cb=document.createElement("input");cb.type="checkbox";cb.value=v.id;cb.checked=true;
+     row.append(cb,document.createTextNode(v.title));choices.appendChild(row);
+   });
+   $("exportStatus").textContent="";
+   $("exportOverlay").hidden=false;$("exportOverlay").style.display="flex";
+ };
+ $("exportCancel").onclick=()=>{$("exportOverlay").hidden=true;$("exportOverlay").style.display="none"};
+ function exportWaitForImages(images){return Promise.all(images.map(im=>{
+   if(im.complete)return Promise.resolve();
+   return new Promise(resolve=>{im.addEventListener("load",resolve,{once:true});im.addEventListener("error",resolve,{once:true});});
+ }));}
+ function exportCaptureView(view){
+   currentView=view;render();
+   const build=$("build");
+   return exportWaitForImages([...build.querySelectorAll("img")]).then(()=>{
+     // Work in unscaled physical pixels so the export isn't limited by screen size.
+     const base=build.getBoundingClientRect();
+     const factor=base.width/Math.max(1,build.offsetWidth)||1;
+     const imgs=[...build.querySelectorAll("img")].filter(im=>im.complete&&im.naturalWidth>0);
+     const w=Math.max(1,Math.ceil(build.offsetWidth));
+     const h=Math.max(1,Math.ceil(build.offsetHeight));
+     const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+     const ctx=canvas.getContext("2d");
+     imgs.forEach(im=>{
+       const r=im.getBoundingClientRect();
+       const x=(r.left-base.left)/factor,y=(r.top-base.top)/factor;
+       const iw=r.width/factor,ih=r.height/factor;
+       // Images in the existing render already have the correct orientation and dimensions.
+       ctx.drawImage(im,x,y,iw,ih);
+     });
+     return canvas;
+   });
+ }
+ function exportCompose(panels){
+   const scale=2,pad=26,labelH=34,floorH=16,gap=28;
+   const maxPanelW=1080,maxPanelH=760;
+   const cells=panels.map(p=>{
+     const fit=Math.min(1,maxPanelW/p.canvas.width,maxPanelH/p.canvas.height);
+     return {...p,w:Math.ceil(p.canvas.width*fit),h:Math.ceil(p.canvas.height*fit)};
+   });
+   const rows=[];
+   if(cells.length===1)rows.push([cells[0]]);
+   else if(cells.length===2)rows.push(cells);
+   else if(cells.length===3){rows.push(cells.slice(0,2));rows.push(cells.slice(2));}
+   else {rows.push(cells.slice(0,2));rows.push(cells.slice(2,4));}
+   const rowWidths=rows.map(row=>row.reduce((n,c)=>n+c.w+pad*2,0)+gap*(row.length-1));
+   const rowHeights=rows.map(row=>Math.max(...row.map(c=>c.h))+labelH+floorH+pad*2+16);
+   const width=Math.max(...rowWidths),height=rowHeights.reduce((a,b)=>a+b,0)+gap*(rows.length-1);
+   const canvas=document.createElement("canvas");canvas.width=Math.ceil(width*scale);canvas.height=Math.ceil(height*scale);
+   const ctx=canvas.getContext("2d");ctx.scale(scale,scale);ctx.fillStyle="#fff";ctx.fillRect(0,0,width,height);
+   let y=0;
+   rows.forEach((row,ri)=>{
+     let x=(width-rowWidths[ri])/2;
+     row.forEach(c=>{
+       ctx.fillStyle="#222";ctx.font="bold 20px Arial, sans-serif";ctx.fillText(c.title,x+pad,y+25);
+       const imageY=y+labelH+pad+Math.max(...row.map(v=>v.h))-c.h;
+       ctx.drawImage(c.canvas,x+pad,imageY,c.w,c.h);
+       ctx.fillStyle="#c89951";ctx.fillRect(x+pad-8,y+labelH+pad+Math.max(...row.map(v=>v.h)),c.w+16,floorH);
+       if(c.id==="left"||c.id==="right"){
+         ctx.font="bold 12px Arial";ctx.fillStyle="#333";
+         const first=c.id==="left"?"BACK":"FRONT",last=c.id==="left"?"FRONT":"BACK";
+         ctx.fillText(first,x+pad,y+labelH+pad+Math.max(...row.map(v=>v.h))+floorH+14);
+         ctx.textAlign="right";ctx.fillText(last,x+pad+c.w,y+labelH+pad+Math.max(...row.map(v=>v.h))+floorH+14);ctx.textAlign="left";
+       }
+       x+=c.w+pad*2+gap;
+     });
+     y+=rowHeights[ri]+gap;
+   });
+   return canvas;
+ }
+ $("exportDownload").onclick=async()=>{
+   const ids=[...$("exportChoices").querySelectorAll("input:checked")].map(cb=>cb.value);
+   if(!ids.length){$("exportStatus").textContent="Select at least one view.";return;}
+   const button=$("exportDownload"),oldView=currentView,oldIndex=selectedIndex;
+   button.disabled=true;$("exportStatus").textContent="Preparing high-resolution image…";
+   try{
+     // Hide the modal while rendering to avoid interfering with screen layout.
+     $("exportOverlay").style.display="none";
+     const panels=[];
+     for(const v of EXPORT_VIEWS.filter(v=>ids.includes(v.id))){
+       const canvas=await exportCaptureView(v.id);
+       panels.push({id:v.id,title:v.title,canvas});
+     }
+     const result=exportCompose(panels);
+     const blob=await new Promise(resolve=>result.toBlob(resolve,"image/png"));
+     if(!blob)throw new Error("The PNG could not be created.");
+     const url=URL.createObjectURL(blob),a=document.createElement("a");
+     a.href=url;a.download="display-builder-export.png";document.body.appendChild(a);a.click();a.remove();
+     setTimeout(()=>URL.revokeObjectURL(url),30000);
+     $("exportStatus").textContent="PNG generated.";
+   }catch(err){console.error(err);$("exportStatus").textContent="Export failed: "+err.message;}
+   finally{
+     currentView=oldView;selectedIndex=oldIndex;
+     $("viewTitle").textContent=EXPORT_VIEWS.find(v=>v.id===oldView).title;
+     EXPORT_VIEWS.forEach(v=>$(v.btn).classList.toggle("active",v.id===oldView));
+     render();$("exportOverlay").style.display="flex";button.disabled=false;
+   }
+ };
+
 new ResizeObserver(fitBuild).observe($("build").parentElement);
 function renderCounts(){let totals={},grand=0;function add(pkg,prod,fac,hs){let n=hs.reduce((a,b)=>a+b,0)*fac,key=pkg+"|"+prod;totals[key]=(totals[key]||0)+n;grand+=n}stacks.forEach(s=>{if(s.frontEnabled!==false){const hs=s.depthHeights||[s.height];if(s.mixedEnabled){hs.forEach((h,i)=>add(s.packageType||"12",i<Math.min(hs.length,s.mixedFrontDepth||1)?s.mixedFrontProduct:s.product,s.facings,[h]))}else add(s.packageType||"12",s.product,s.facings,hs)}if(s.backEnabled){let b=backAsStack(s);add(b.packageType,b.product,b.facings,b.depthHeights)}});let h="<b>Case count</b>";PRODUCTS.forEach(p=>{["12","24","6pk"].forEach(pkg=>{let key=pkg+"|"+p.id;if(totals[key])h+=`<div class="countrow"><span>${p.name} ${pkg==="6pk"?"6pk":pkg==="24"?"24pk":"12pk"}</span><b>${totals[key]}</b></div>`})});h+=`<hr><div class="countrow"><b>Total</b><b>${grand}</b></div>`;$("counts").innerHTML=h}
 $("mixedEnabled").onchange=()=>{toggleMixedFields();updateSelected()};
