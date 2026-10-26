@@ -10,21 +10,21 @@
 <title>Display Builder — Physical XYZ Grid V7</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#eef1f5;color:#111}
-.app{display:grid;grid-template-columns:165px 1fr 230px;height:100vh}
-.left,.right{background:#fff;padding:12px}.left{border-right:1px solid #ddd}.right{border-left:1px solid #ddd}
+.app{display:grid;grid-template-columns:165px minmax(0,1fr) 230px;height:100vh;height:100dvh;overflow:hidden}
+.left,.right{background:#fff;padding:12px;overflow-y:auto}.left{border-right:1px solid #ddd}.right{border-left:1px solid #ddd}
 h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14px}
 .prod{width:100%;text-align:left;padding:9px;margin-bottom:6px;border:1px solid #ddd;border-radius:7px;background:#fff;font-weight:700;cursor:pointer}
 .product-group{margin:0 0 7px;border:1px solid #dce1e8;border-radius:8px;overflow:hidden;background:#fff}.product-group summary{padding:10px 8px;font-size:12px;font-weight:800;cursor:pointer;background:#f4f6f9;list-style:none;display:flex;align-items:center;justify-content:space-between}.product-group summary::-webkit-details-marker{display:none}.product-group summary:after{content:"▸";font-size:13px}.product-group[open] summary:after{content:"▾"}.product-group-items{padding:7px}.product-group .prod{font-size:11px;padding:7px 5px;margin-bottom:4px}.product-group .prod:last-child{margin-bottom:0}.product-group[hidden],.prod[hidden]{display:none!important}
 .prod.active{outline:2px solid #111}.prod:before{content:"";display:inline-block;width:6px;height:22px;border-radius:4px;vertical-align:middle;margin-right:8px;background:var(--c)}
-.main{padding:12px}.toolbar{display:flex;gap:7px;margin-bottom:10px}.toolbar button{padding:7px 12px;border:1px solid #ccc;background:#fff;border-radius:5px;cursor:pointer}.toolbar .active{background:#111;color:#fff}
-.stage{position:relative;height:520px;background:#fff;border:1px solid #ddd;border-radius:12px;overflow:auto}.stage-title{padding:15px;font-weight:700;font-size:12px}
+.main{padding:12px;min-width:0;min-height:0;display:flex;flex-direction:column}.toolbar{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;flex:0 0 auto}.toolbar button{padding:7px 12px;border:1px solid #ccc;background:#fff;border-radius:5px;cursor:pointer}.toolbar .active{background:#111;color:#fff}
+.stage{position:relative;flex:1;min-height:0;height:auto;background:#fff;border:1px solid #ddd;border-radius:12px;overflow:auto}.stage-title{padding:15px;font-weight:700;font-size:12px}.stage-content{position:relative;min-width:100%;min-height:100%}.zoom-tools{display:flex;align-items:center;gap:8px;padding:4px 8px;font-size:12px;font-weight:bold;white-space:nowrap}.zoom-tools input{width:120px;accent-color:#111}.zoom-tools output{min-width:38px;text-align:right}
 .floor{position:absolute;left:16px;right:16px;bottom:30px;height:20px;background:#c89951;z-index:0}
 .build{position:absolute;left:30px;bottom:50px;display:flex;align-items:flex-end;gap:0;z-index:1}
 .build.side-mode{display:block;position:absolute;bottom:72px}
 .build.side-mode .stack{position:absolute;left:0;bottom:0}
 .stack{display:flex;align-items:flex-end;gap:0;cursor:pointer;outline-offset:3px}.stack.selected{outline:2px dashed #444}
 .column{display:flex;flex-direction:column-reverse;gap:0}.case{display:block;object-fit:fill;vertical-align:top}.case24box{position:relative;display:block;overflow:hidden;flex:0 0 auto}.case24box img{position:absolute;display:block;max-width:none;max-height:none}
-.right h3{font-size:14px;margin:0 0 25px}.field{margin-bottom:13px}.field label{display:block;font-size:9px;font-weight:bold;margin-bottom:5px}.field input,.field select{width:100%;padding:7px;border:1px solid #ccc;border-radius:5px}
+.right{overflow-y:auto;min-height:0}.right h3{font-size:14px;margin:0 0 12px}.field{margin-bottom:13px}.field label{display:block;font-size:9px;font-weight:bold;margin-bottom:5px}.field input,.field select{width:100%;padding:7px;border:1px solid #ccc;border-radius:5px}
 .delete{width:100%;padding:7px;border:1px solid #e3bcbc;color:#b00000;background:#fff;border-radius:5px;cursor:pointer;margin-top:5px}
 .info{font-size:10px;background:#f5f6f8;padding:9px;border-radius:6px;line-height:1.45;margin-top:12px}
 .counts{font-size:10px;margin-top:18px;border-top:1px solid #ddd;padding-top:12px}.countrow{display:flex;justify-content:space-between;margin:5px 0}.sectionhead{font-size:10px;font-weight:800;margin:16px 0 8px;padding-top:10px;border-top:1px solid #ddd}.checkrow{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-bottom:10px}.checkrow input{width:auto}.backfields.disabled{opacity:.4;pointer-events:none}.back-placeholder{min-width:120px;height:90px;border:2px dashed #aaa;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:10px;color:#666;background:#fafafa;font-size:11px;font-weight:700;text-align:center;cursor:pointer}.back-placeholder.selected{outline:3px solid #111;border-color:#111}
@@ -50,21 +50,21 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 </style></head>
 <body><div class="app">
 <aside class="left"><h2>Display Builder</h2><div class="sub">12-pack + 24-pack + 6-pack shell assets</div><div id="products"></div></aside>
-<main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="exportBtn">Preview Display</button><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
-<div class="stage"><div class="stage-title" id="viewTitle">Front view</div><div id="build" class="build"></div><div class="floor"></div></div></main>
+<main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="exportBtn">Preview Display</button><label class="zoom-tools">Display zoom <input id="displayZoom" type="range" min="100" max="250" step="10" value="100"><output id="displayZoomValue">100%</output></label><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
+<div class="stage" id="displayStage"><div class="stage-content" id="stageContent"><div class="stage-title" id="viewTitle">Front view</div><div id="build" class="build"></div><div class="floor"></div></div></div></main>
 <aside class="right"><h3>Stack settings</h3>
 <div class="field"><label>PACKAGE</label><select id="packageType"><option value="12">12-Pack</option><option value="24">24-Pack Slab</option><option value="6pk">6-Pack .5L Shell</option></select></div>
 <div class="field"><label>PRODUCT</label><select id="productSelect"></select></div>
 <div class="field"><label>HEIGHT (CASES)</label><input id="height" type="number" min="1" max="15" value="6"></div>
 <div class="field"><label>FACINGS</label><input id="facings" type="number" min="1" max="8" value="1"></div>
 <div class="field"><label>DEPTH</label><input id="depth" type="number" min="1" max="8" value="1"></div>
-<div class="field"><label>DEPTH HEIGHTS (FRONT → BACK; LOW → HIGH)</label><input id="depthHeights" type="text" value="6" placeholder="11,10,9,8,7"><label class="checkrow" style="margin-top:7px;margin-bottom:0"><input id="stairStep" type="checkbox"> Stair step automatically</label><div style="font-size:10px;color:#666;margin-top:4px">When on, HEIGHT is the tallest BACK stack; cases step down 1 toward the FRONT.</div></div>
+<div class="field"><label>DEPTH HEIGHTS (FRONT → BACK; LOW → HIGH)</label><input id="depthHeights" type="text" value="6" placeholder="11,10,9,8,7"><label class="checkrow" style="margin-top:7px;margin-bottom:0"><input id="stairStep" type="checkbox"> Stair step automatically</label></div>
 <div class="sectionhead">MIXED DEPTH ROW</div>
 <label class="checkrow"><input id="mixedEnabled" type="checkbox"> Mix two products in this row</label>
 <div id="mixedFields" class="backfields disabled">
 <div class="field"><label>FRONT PRODUCT</label><select id="mixedFrontProduct"></select></div>
 <div class="field"><label>FRONT PRODUCT DEPTH (OF TOTAL DEPTH)</label><input id="mixedFrontDepth" type="number" min="1" max="12" value="2"></div>
-<div class="info">Remaining depth uses the main PRODUCT as the back product. Depth heights still control each position, front to back.</div>
+
 </div>
 <div class="field"><label>ORIENTATION</label><select id="orientation"><option value="long">Long side</option><option value="short">Short side</option></select></div>
 <div class="field"><label>CASE HEIGHT (SCREEN PX)</label><input id="caseHeight" type="number" min="15" max="100" value="38"></div>
@@ -75,11 +75,11 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 <div class="field"><label>BACK PRODUCT</label><select id="backProduct"></select></div>
 <div class="field"><label>BACK FACINGS</label><input id="backFacings" type="number" min="1" max="24" value="1"></div>
 <div class="field"><label>BACK DEPTH</label><input id="backDepth" type="number" min="1" max="12" value="1"></div>
-<div class="field"><label>BACK DEPTH HEIGHTS (BACK → FRONT)</label><input id="backDepthHeights" type="text" value="11" placeholder="11,10,9"><label class="checkrow" style="margin-top:7px;margin-bottom:0"><input id="backStairStep" type="checkbox"> Stair step automatically</label><div style="font-size:10px;color:#666;margin-top:4px">When on, the first back height steps down 1 case per depth position.</div></div>
+<div class="field"><label>BACK DEPTH HEIGHTS (BACK → FRONT)</label><input id="backDepthHeights" type="text" value="11" placeholder="11,10,9"><label class="checkrow" style="margin-top:7px;margin-bottom:0"><input id="backStairStep" type="checkbox"> Stair step automatically</label></div>
 <div class="field"><label>BACK ORIENTATION</label><select id="backOrientation"><option value="long">Long side</option><option value="short">Short side</option></select></div>
 </div>
 <button id="deleteBtn" class="delete">Delete selected stack</button>
-<div class="info">Each selected stack is one physical row position. The FRONT section and optional BACK section are independent: product, facings, depth heights, package, and orientation can differ. Back depth heights are entered backside → inward. This allows Pepsi long-side from the front and Dew short-side from the back in the same physical row. 12-pack assets use *-12-long/short.png. 24-pack assets use *-24-long/short.png. Mixed rows split the front depth between two products. 6-pack shell assets use *-6pk-long/short.png. 6-pack shells are available for Pepsi, Diet Pepsi, Mtn Dew, Diet Mtn Dew, Dr Pepper, and Diet Dr Pepper.</div>
+
 <div id="counts" class="counts"></div>
 </aside><div id="mobileScrim" class="mobile-scrim"></div></div>
 <div id="exportOverlay" class="export-overlay" hidden style="display:none" role="dialog" aria-modal="true" aria-label="Preview display image"><div class="export-dialog"><h3>Preview display</h3><p style="font-size:13px;color:#555">Select the views to include. The preview updates automatically; empty backside views are omitted.</p><div id="exportChoices"></div><div id="exportStatus" class="export-status" aria-live="polite"></div><div id="exportPreviewWrap" class="export-preview-wrap"><img id="exportPreviewImage" alt="Preview of the combined display views" hidden></div><div class="export-actions"><button id="exportZoom" type="button">Zoom in</button><button id="exportCancel" type="button">Close Preview</button><button id="exportDownload" class="primary" type="button" disabled>Download PNG</button></div></div></div>
@@ -293,6 +293,11 @@ function caseMetrics(s,viewOrientation){
    : pkg==="24"
      ? (viewOrientation==="long" ? twelvePackW : twelvePackW * 2)
      : twelvePackW;
+ // Apply tested 6-pack proportions to every 6-pack flavor.
+ // 12-packs and 24-packs retain their original geometry.
+ if(pkg==="6pk"){
+   return {displayH:Math.round(displayH*1.18),caseW:Math.round(caseW*0.85)};
+ }
  return {displayH,caseW};
 }
 function makeStackElement(s,idx,viewOrientation,visibleColumns,productColumns){
@@ -338,16 +343,31 @@ function makeStackElement(s,idx,viewOrientation,visibleColumns,productColumns){
  return el;
 }
 function backAsStack(s){return {packageType:s.backPackageType||"12",product:s.backProduct||"mtn-dew",facings:s.backFacings||1,depth:s.backDepth||1,depthHeights:s.backDepthHeights||[11],height:(s.backDepthHeights||[11])[0],orientation:s.backOrientation||"short",caseHeight:s.caseHeight};}
+let displayZoom=1;
 function fitBuild(){
- const build=$("build"),stage=build.parentElement;
- // Fit the complete elevation uniformly; package proportions stay unchanged.
+ const build=$("build"),stage=$("displayStage"),content=$("stageContent");
+ // Fit horizontally at 100%; tall stacks scroll vertically instead of being shrunk.
  const bottom=currentView==="left"||currentView==="right"?72:50;
  const availableWidth=Math.max(1,stage.clientWidth-60);
- const availableHeight=Math.max(1,stage.clientHeight-bottom-55);
- const scale=Math.min(1,availableWidth/Math.max(1,build.offsetWidth),availableHeight/Math.max(1,build.offsetHeight));
+ const naturalW=Math.max(1,build.offsetWidth),naturalH=Math.max(1,build.offsetHeight);
+ const fit=Math.min(1,availableWidth/naturalW);
+ const scale=fit*displayZoom;
+ // A real scrollable content area prevents enlarged builds from being clipped.
+ const contentW=Math.max(stage.clientWidth,Math.ceil(naturalW*scale+60));
+ const contentH=Math.max(stage.clientHeight,Math.ceil(naturalH*scale+bottom+55));
+ content.style.width=contentW+"px";
+ content.style.height=contentH+"px";
  build.style.transformOrigin="bottom left";
  build.style.transform=`scale(${scale})`;
 }
+$("displayZoom").oninput=()=>{
+ displayZoom=Number($("displayZoom").value)/100;
+ $("displayZoomValue").textContent=$("displayZoom").value+"%";
+ fitBuild();
+ const stage=$("displayStage");
+ stage.scrollTop=stage.scrollHeight-stage.clientHeight;
+};
+window.addEventListener("resize",()=>{if($("build").children.length)fitBuild()});
 function render(){
  const build=$("build"); build.innerHTML="";
  const isSide=currentView==="left"||currentView==="right";
