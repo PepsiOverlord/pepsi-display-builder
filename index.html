@@ -22,7 +22,7 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 .build{position:absolute;left:30px;bottom:50px;display:flex;align-items:flex-end;gap:0;z-index:1}
 .build.side-mode{display:block;position:absolute;bottom:72px}
 .build.side-mode .stack{position:absolute;left:0;bottom:0}
-.stack{display:flex;align-items:flex-end;gap:0;cursor:pointer;outline-offset:3px}.stack.selected{outline:2px dashed #444}
+.stack{touch-action:pan-y}.build img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}.drag-target{box-shadow:inset 5px 0 #1478ff!important;outline:3px dashed #1478ff!important}.drag-source{opacity:.48}.stack{display:flex;align-items:flex-end;gap:0;cursor:pointer;outline-offset:3px}.stack.selected{outline:2px dashed #444}
 .column{display:flex;flex-direction:column-reverse;gap:0}.case{display:block;object-fit:fill;vertical-align:top}.case24box{position:relative;display:block;overflow:hidden;flex:0 0 auto}.case24box img{position:absolute;display:block;max-width:none;max-height:none}
 .right{overflow-y:auto;min-height:0}.right h3{font-size:14px;margin:0 0 12px}.field{margin-bottom:13px}.field label{display:block;font-size:9px;font-weight:bold;margin-bottom:5px}.field input,.field select{width:100%;padding:7px;border:1px solid #ccc;border-radius:5px}
 .delete{width:100%;padding:7px;border:1px solid #e3bcbc;color:#b00000;background:#fff;border-radius:5px;cursor:pointer;margin-top:5px}
@@ -258,8 +258,9 @@ function addStack(){
      s.stairStep=false;
    }
  }
- stacks.push(s);
- selectedIndex=stacks.length-1;
+ const insertAt=selectedIndex>=0?selectedIndex+1:stacks.length;
+ stacks.splice(insertAt,0,s);
+ selectedIndex=insertAt;
  render();
  loadControls(stacks[selectedIndex]);
 }
@@ -304,6 +305,7 @@ function makeStackElement(s,idx,viewOrientation,visibleColumns,productColumns){
  const {displayH,caseW}=caseMetrics(s,viewOrientation);
  let el=document.createElement("div");
  el.className="stack"+(idx===selectedIndex?" selected":"");
+  el.dataset.stackIndex=String(idx);
  el.onclick=e=>{e.stopPropagation();selectedIndex=idx;loadControls(stacks[idx]);render()};
  const heights = Array.isArray(visibleColumns) ? visibleColumns : Array(visibleColumns).fill(s.height);
  for(let x=0;x<heights.length;x++){
@@ -389,6 +391,7 @@ function render(){
        lane.style.width=(caseW*s.facings)+"px";
        lane.style.height=(displayH*Math.max(...dh))+"px";
        lane.className=idx===selectedIndex?"selected":"";
+        lane.dataset.stackIndex=String(idx);
        lane.style.cursor="pointer";
        lane.onclick=e=>{e.stopPropagation();selectedIndex=idx;loadControls(stacks[idx]);render()};
        // Paint furthest first, nearest last. Each layer shares the same bottom.
@@ -412,7 +415,20 @@ function render(){
    [...stacks].map((s,idx)=>({s,idx})).reverse().forEach(({s,idx})=>{
      if(!s.backEnabled)return;
      const b=backAsStack(s), dh=b.depthHeights||[b.height];
-     build.appendChild(makeStackElement({...b,height:dh[0]},idx,b.orientation,b.facings));
+     const {caseW,displayH}=caseMetrics(b,b.orientation);
+     const lane=document.createElement("div");
+     lane.style.cssText=`position:relative;flex:0 0 auto;width:${caseW*b.facings}px;height:${displayH*Math.max(...dh)}px;cursor:pointer`;
+     lane.className=idx===selectedIndex?"selected":"";
+     lane.dataset.stackIndex=String(idx);
+     lane.onclick=e=>{e.stopPropagation();selectedIndex=idx;loadControls(stacks[idx]);render()};
+     for(let d=dh.length-1;d>=0;d--){
+       const layer=makeStackElement({...b,height:dh[d]},idx,b.orientation,b.facings);
+       layer.classList.remove("selected");layer.style.outline="none";
+       layer.style.position="absolute";layer.style.left="0";layer.style.bottom="0";
+       layer.style.zIndex=String(dh.length-d);layer.onclick=null;
+       lane.appendChild(layer);
+     }
+     build.appendChild(lane);
    });
    build.style.width=""; build.style.height="";
  }
@@ -727,35 +743,28 @@ $("backPackageType").onchange=()=>{
  const h=$("backPackageType").value==="6pk"?8:11;
  const d=Math.max(1,+$("backDepth").value||1);
  $("backDepthHeights").value=$("backStairStep").checked?stairValues(h,d).join(","):Array(d).fill(h).join(",");
+ selectedProduct=$("backProduct").value;syncButtons();
  updateBackSelected();
 };
 ["backFacings","backOrientation"].forEach(id=>$(id).oninput=updateBackSelected);
-$("backProduct").onchange=()=>{if(selectedIndex<0)return;$("backEnabled").checked=true;toggleBackFields();updateBackSelected();};
+$("backProduct").onchange=()=>{if(selectedIndex<0)return;selectedProduct=$("backProduct").value;syncButtons();$("backEnabled").checked=true;toggleBackFields();updateBackSelected();};
 $("backDepthHeights").oninput=()=>{let vals=$("backDepthHeights").value.split(",").map(v=>v.trim()).filter(Boolean);if(vals.length)$("backDepth").value=vals.length;updateBackSelected()};
 $("backDepth").oninput=()=>{if($("backStairStep").checked){applyBackStair()}else{let vals=parseList("backDepthHeights","backDepth",11);$("backDepthHeights").value=vals.join(",")}updateBackSelected()};
 $("backStairStep").onchange=()=>{if($("backStairStep").checked)applyBackStair();updateBackSelected()};
 function addForCurrentView(){
  if(currentView!=="back"){addStack();return;}
- // BACKSIDE supports multiple independent stacks. Each backside stack occupies its own
- // physical row position, aligned with a front stack. If the selected row already has
- // a backside section, create a new physical row and add a new backside section there.
- if(selectedIndex<0 && stacks.length)selectedIndex=stacks.length-1;
- let s=selectedIndex>=0?stacks[selectedIndex]:null;
- // If the selected physical row already has a back stack, create a TRUE back-only row.
- // Do not clone/create any front stack -- front and back are completely independent.
- if(!s || s.backEnabled){
-   s={frontEnabled:false,packageType:"12",product:"pepsi",height:1,facings:1,depth:1,depthHeights:[1],orientation:"long",caseHeight:+$("caseHeight").value||38,stairStep:false,backEnabled:false};
-   stacks.push(s);selectedIndex=stacks.length-1;
- }
- s.backEnabled=true;
- s.backPackageType=$("backPackageType").value||"12";
- s.backProduct=$("backProduct").value||s.product||"pepsi";
- s.backFacings=Math.max(1,+$("backFacings").value||1);
- s.backDepthHeights=parseList("backDepthHeights","backDepth",11);
+ // Backside camera reverses physical row order. Inserting BEFORE the selected
+ // physical row places the new stack immediately to its RIGHT on screen.
+ const insertAt=selectedIndex>=0?selectedIndex:0;
+ const s={frontEnabled:false,packageType:"12",product:"pepsi",height:1,facings:1,depth:1,depthHeights:[1],orientation:"long",caseHeight:+$("caseHeight").value||38,stairStep:false,
+   backEnabled:true,backPackageType:$("backPackageType").value||"12",backProduct:$("backProduct").value||"pepsi",
+   backFacings:Math.max(1,+$("backFacings").value||1),backDepthHeights:parseList("backDepthHeights","backDepth",11),
+   backOrientation:$("backOrientation").value||"short",backStairStep:$("backStairStep").checked};
  s.backDepth=s.backDepthHeights.length;
- s.backOrientation=$("backOrientation").value||"short";
- s.backStairStep=$("backStairStep").checked;
- loadControls(s);render();
+ stacks.splice(insertAt,0,s);
+ selectedIndex=insertAt;
+ loadControls(s);
+ render();
 }
 function deleteSelected(){
  if(selectedIndex<0)return;
@@ -782,6 +791,99 @@ $("frontBtn").onclick=()=>setView("front","Front side","frontBtn");
 $("leftBtn").onclick=()=>setView("left","Left side","leftBtn");
 $("rightBtn").onclick=()=>setView("right","Right side","rightBtn");
 $("backBtn").onclick=()=>setView("back","Backside","backBtn");
+// Drag whole physical rows; front and attached back sections stay together.
+(function installStackReordering(){
+ const stage=$("displayStage"),build=$("build");
+ let drag=null, suppressClick=false;
+ const faceView=()=>currentView==="front"||currentView==="back";
+ const directRows=()=>[...build.children].filter(el=>el.dataset.stackIndex!==undefined);
+ function cleanup(){
+   directRows().forEach(el=>el.classList.remove("drag-target","drag-source"));
+   if(drag?.timer)clearTimeout(drag.timer);
+   drag=null;
+ }
+ // Native HTML image dragging steals pointer events in Chrome.
+ build.addEventListener("dragstart",e=>e.preventDefault());
+ stage.addEventListener("pointerdown",e=>{
+   if(!faceView()||e.button!==0)return;
+   const el=e.target.closest("[data-stack-index]");
+   if(!el||!build.contains(el))return;
+   const row=directRows().find(r=>r===el||r.contains(el));
+   if(!row)return;
+   const grabbedRect=row.getBoundingClientRect();
+   drag={id:e.pointerId,source:Number(row.dataset.stackIndex),startX:e.clientX,startY:e.clientY,
+     grabOffsetX:e.clientX-grabbedRect.left,grabWidth:grabbedRect.width,
+     armed:e.pointerType==="mouse",moving:false,timer:null,target:null};
+   if(e.pointerType!=="mouse")drag.timer=setTimeout(()=>{
+     if(drag&&drag.id===e.pointerId){drag.armed=true;row.classList.add("drag-source");}
+   },350);
+   try{stage.setPointerCapture(e.pointerId)}catch(_){}
+ });
+ stage.addEventListener("pointermove",e=>{
+   if(!drag||drag.id!==e.pointerId)return;
+   const dx=e.clientX-drag.startX,dy=e.clientY-drag.startY;
+   if(!drag.armed){if(Math.hypot(dx,dy)>12)cleanup();return;}
+   if(!drag.moving&&Math.hypot(dx,dy)<7)return;
+   drag.moving=true;
+   if(e.cancelable)e.preventDefault();
+   const rows=directRows();
+   rows.forEach(el=>el.classList.remove("drag-target","drag-source"));
+   const source=rows.find(el=>Number(el.dataset.stackIndex)===drag.source);
+   if(source)source.classList.add("drag-source");
+   // Hit-test the POINTER against the full rectangle of each destination stack.
+   // Any point inside a stack selects that stack, regardless of where the
+   // source stack was grabbed or how wide either stack is.
+   const candidates=rows.filter(el=>Number(el.dataset.stackIndex)!==drag.source);
+   const hit=candidates.find(el=>{
+     const r=el.getBoundingClientRect();
+     return e.clientX>=r.left && e.clientX<=r.right &&
+            e.clientY>=r.top && e.clientY<=r.bottom;
+   });
+   drag.target=hit ? Number(hit.dataset.stackIndex) : null;
+   if(hit)hit.classList.add("drag-target");
+ },{passive:false});
+ stage.addEventListener("pointerup",e=>{
+   if(!drag||drag.id!==e.pointerId)return;
+   const d=drag;
+   if(!d.moving){
+     // Pointer capture may retarget the synthesized click to the stage.
+     // Select explicitly so a simple click/tap always selects the row.
+     selectedIndex=d.source;
+     if(stacks[selectedIndex]){loadControls(stacks[selectedIndex]);render();}
+   }
+   if(d.moving&&d.target!==null){
+     const visual=directRows().map(el=>Number(el.dataset.stackIndex));
+     const sourcePos=visual.indexOf(d.source);
+     if(sourcePos>=0){
+       // Insert at the destination stack's original visible position.
+       // No half-width thresholds or projected dragged-stack center.
+       const destinationPos=visual.indexOf(d.target);
+       const reordered=visual.filter(i=>i!==d.source);
+       const pos=Math.max(0,Math.min(reordered.length,destinationPos));
+       reordered.splice(pos,0,d.source);
+       // The backside camera sees the physical array in reverse order.
+       const physical=currentView==="back"?[...reordered].reverse():reordered;
+       const visibleSet=new Set(visual);
+       const movedRows=physical.map(i=>stacks[i]);
+       let k=0;
+       const draggedObject=stacks[d.source];
+       const next=stacks.map((row,i)=>visibleSet.has(i)?movedRows[k++]:row);
+       stacks.splice(0,stacks.length,...next);
+       selectedIndex=stacks.indexOf(draggedObject);
+       suppressClick=true;
+       render();
+       if(selectedIndex>=0)loadControls(stacks[selectedIndex]);
+     }
+   }
+   cleanup();
+   try{if(stage.hasPointerCapture(e.pointerId))stage.releasePointerCapture(e.pointerId)}catch(_){}
+ });
+ stage.addEventListener("pointercancel",cleanup);
+ stage.addEventListener("click",e=>{
+   if(suppressClick){e.preventDefault();e.stopImmediatePropagation();suppressClick=false;}
+ },true);
+})();
+
 function closeMobilePanels(){document.body.classList.remove("products-open","settings-open")}
 $("mobileProductsBtn").onclick=()=>{document.body.classList.remove("settings-open");document.body.classList.toggle("products-open")};
 $("mobileSettingsBtn").onclick=()=>{document.body.classList.remove("products-open");document.body.classList.toggle("settings-open")};
