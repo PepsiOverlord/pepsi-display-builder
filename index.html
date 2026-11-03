@@ -15,7 +15,7 @@
 h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14px}
 .prod{width:100%;text-align:left;padding:9px;margin-bottom:6px;border:1px solid #ddd;border-radius:7px;background:#fff;font-weight:700;cursor:pointer}
 .product-group{margin:0 0 7px;border:1px solid #dce1e8;border-radius:8px;overflow:hidden;background:#fff}.product-group summary{padding:10px 8px;font-size:12px;font-weight:800;cursor:pointer;background:#f4f6f9;list-style:none;display:flex;align-items:center;justify-content:space-between}.product-group summary::-webkit-details-marker{display:none}.product-group summary:after{content:"▸";font-size:13px}.product-group[open] summary:after{content:"▾"}.product-group-items{padding:7px}.product-group .prod{font-size:11px;padding:7px 5px;margin-bottom:4px}.product-group .prod:last-child{margin-bottom:0}.product-group[hidden],.prod[hidden]{display:none!important}
-.prod.active{outline:2px solid #111}.prod:before{content:"";display:inline-block;width:6px;height:22px;border-radius:4px;vertical-align:middle;margin-right:8px;background:var(--c)}
+.catalog-tabs{display:flex;gap:5px;margin:0 0 10px}.catalog-tab{flex:1;padding:8px 4px;border:1px solid #dce1e8;border-radius:7px;background:#f4f6f9;font-weight:700;font-size:11px;cursor:pointer}.catalog-tab.active{background:#111;color:#fff;border-color:#111}.gatorade-list[hidden],.soda-list[hidden],#gatoradeSettings[hidden],#sodaSettings[hidden]{display:none!important}.gatorade-note{font-size:10px;line-height:1.4;color:#666;margin:0 0 9px}.prod.active{outline:2px solid #111}.prod:before{content:"";display:inline-block;width:6px;height:22px;border-radius:4px;vertical-align:middle;margin-right:8px;background:var(--c)}
 .main{padding:12px;min-width:0;min-height:0;display:flex;flex-direction:column}.toolbar{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;flex:0 0 auto}.toolbar button{padding:7px 12px;border:1px solid #ccc;background:#fff;border-radius:5px;cursor:pointer}.toolbar .active{background:#111;color:#fff}
 .stage{position:relative;flex:1;min-height:0;height:auto;background:#fff;border:1px solid #ddd;border-radius:12px;overflow:auto}.stage-title{padding:15px;font-weight:700;font-size:12px}.stage-content{position:relative;min-width:100%;min-height:100%}.zoom-tools{display:flex;align-items:center;gap:8px;padding:4px 8px;font-size:12px;font-weight:bold;white-space:nowrap}.zoom-tools input{width:120px;accent-color:#111}.zoom-tools output{min-width:38px;text-align:right}
 .floor{position:absolute;left:16px;right:16px;bottom:30px;height:20px;background:#c89951;z-index:0}
@@ -49,10 +49,16 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 .export-overlay{position:fixed;inset:0;z-index:100;background:#0008;display:flex;align-items:center;justify-content:center;padding:15px}.export-dialog{background:white;border-radius:12px;padding:22px;width:min(430px,100%);box-shadow:0 12px 45px #0004}.export-dialog h3{margin:0 0 8px}.export-choice{display:flex;align-items:center;gap:10px;margin:13px 0;font-size:14px}.export-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}.export-actions button{padding:10px 14px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer}.export-actions .primary{background:#111;color:#fff}.export-status{font-size:12px;color:#555;min-height:18px}.export-dialog{width:min(1100px,100%);max-height:95dvh;overflow:auto}.export-preview-wrap{background:#eef1f5;border:1px solid #ddd;border-radius:8px;min-height:120px;max-height:58dvh;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:12px}.export-preview-wrap img{display:block;max-width:100%;height:auto;object-fit:contain}.export-preview-wrap.zoomed{justify-content:flex-start}.export-preview-wrap.zoomed img{max-width:none}.export-choice{display:inline-flex;margin:8px 15px 8px 0}.export-dialog h3{margin-bottom:5px}.export-preview-wrap{justify-content:flex-start}.export-preview-wrap img{width:100%;max-width:100%;height:auto}.export-actions{flex-wrap:wrap}.export-actions button:disabled{opacity:.5;cursor:not-allowed}
 </style></head>
 <body><div class="app">
-<aside class="left"><h2>Display Builder</h2><div class="sub">12-pack + 24-pack + 6-pack shell assets</div><div id="products"></div></aside>
+<aside class="left"><h2>Display Builder</h2><div class="sub">12-pack + 24-pack + 6-pack shell assets</div><div class="catalog-tabs"><button type="button" id="sodaTab" class="catalog-tab active" aria-pressed="true">Soda</button><button type="button" id="gatoradeTab" class="catalog-tab" aria-pressed="false">Gatorade</button></div><div id="products" class="soda-list"></div><div id="gatoradeProducts" class="gatorade-list" hidden></div></aside>
 <main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="exportBtn">Preview Display</button><label class="zoom-tools">Display zoom <input id="displayZoom" type="range" min="100" max="250" step="10" value="100"><output id="displayZoomValue">100%</output></label><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
 <div class="stage" id="displayStage"><div class="stage-content" id="stageContent"><div class="stage-title" id="viewTitle">Front view</div><div id="build" class="build"></div><div class="floor"></div></div></div></main>
-<aside class="right"><h3>Stack settings</h3>
+<aside class="right"><div id="gatoradeSettings" hidden>
+<h3>Gatorade stack settings</h3>
+<div class="field"><label>PACKAGE</label><select id="gatoradePackageType"><option value="8">8-Pack</option></select></div>
+<div class="field"><label>PRODUCT</label><select id="gatoradeProductSelect"></select></div>
+<div class="field"><label>ORIENTATION</label><select id="gatoradeOrientation"><option value="long">Long side</option><option value="short">Short side</option></select></div>
+<div class="field"><label>HEIGHT (CASES)</label><input id="gatoradeHeight" type="number" min="1" max="15" value="6"></div><div class="field"><label>FACINGS</label><input id="gatoradeFacings" type="number" min="1" max="8" value="1"></div><div class="field"><label>DEPTH</label><input id="gatoradeDepth" type="number" min="1" max="8" value="1"></div><label class="checkrow"><input id="gatoradeStairStep" type="checkbox"> Stair step automatically</label><div class="info">Each case layer = three 8-packs (24 bottles). Long case face: 3 short-side images. Short case face: 1 long-side image.</div>
+</div><div id="sodaSettings"><h3>Stack settings</h3>
 <div class="field"><label>PACKAGE</label><select id="packageType"><option value="12">12-Pack</option><option value="24">24-Pack Slab</option><option value="6pk">6-Pack .5L Shell</option></select></div>
 <div class="field"><label>PRODUCT</label><select id="productSelect"></select></div>
 <div class="field"><label>HEIGHT (CASES)</label><input id="height" type="number" min="1" max="15" value="6"></div>
@@ -81,7 +87,7 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 <button id="deleteBtn" class="delete">Delete selected stack</button>
 
 <div id="counts" class="counts"></div>
-</aside><div id="mobileScrim" class="mobile-scrim"></div></div>
+</div></aside><div id="mobileScrim" class="mobile-scrim"></div></div>
 <div id="exportOverlay" class="export-overlay" hidden style="display:none" role="dialog" aria-modal="true" aria-label="Preview display image"><div class="export-dialog"><h3>Preview display</h3><p style="font-size:13px;color:#555">Select the views to include. The preview updates automatically; empty backside views are omitted.</p><div id="exportChoices"></div><div id="exportStatus" class="export-status" aria-live="polite"></div><div id="exportPreviewWrap" class="export-preview-wrap"><img id="exportPreviewImage" alt="Preview of the combined display views" hidden></div><div class="export-actions"><button id="exportZoom" type="button">Zoom in</button><button id="exportCopy" type="button" disabled>Copy image</button><button id="exportShare" type="button" hidden disabled>Share / Save</button><button id="exportCancel" type="button">Close Preview</button><button id="exportDownload" class="primary" type="button" disabled>Save PNG</button></div></div></div>
 <script>
 const PRODUCTS=[
@@ -113,6 +119,69 @@ const PRODUCTS=[
  {id:"dr-pepper-zero-strawberries-&-cream",name:"Dr Pepper Zero Strawberries & Cream",color:"#b88d9d"},
  {id:"coke",name:"Coca-Cola",color:"#e41d2d"}];
 PRODUCTS.forEach(p=>{let o=document.createElement("option");o.value=p.id;o.textContent=p.name;document.getElementById("mixedFrontProduct").appendChild(o)});
+// Gatorade 8-pack asset catalog. Filenames match the supplied PNG naming convention.
+// This first update adds the selection tab and registers the art; 8-pack display
+// geometry and stack placement are intentionally reserved for the next update.
+const GATORADE_PRODUCTS=[
+ {id:"cool-blue",name:"Cool Blue",color:"#168bd1"},
+ {id:"fruit-punch",name:"Fruit Punch",color:"#d51b2b"},
+ {id:"glacier-cherry",name:"Glacier Cherry",color:"#e7e9ec"},
+ {id:"glacier-freeze",name:"Glacier Freeze",color:"#51c8e7"},
+ {id:"lemon-lime",name:"Lemon Lime",color:"#c9e51c"},
+ {id:"orange",name:"Orange",color:"#f58a17"},
+ {id:"riptide-rush",name:"Riptide Rush",color:"#8b4bc4"},
+ {id:"zero-cool-blue",name:"Zero Cool Blue",color:"#168bd1"},
+ {id:"zero-fruit-punch",name:"Zero Fruit Punch",color:"#d51b2b"},
+ {id:"zero-glacier-cherry",name:"Zero Glacier Cherry",color:"#e7e9ec"},
+ {id:"zero-glacier-freeze",name:"Zero Glacier Freeze",color:"#51c8e7"},
+ {id:"zero-grape",name:"Zero Grape",color:"#b57dce"},
+ {id:"zero-lemon-lime",name:"Zero Lemon Lime",color:"#c9e51c"},
+ {id:"zero-orange",name:"Zero Orange",color:"#f58a17"}
+];
+function gatoradeAsset(id,orientation){
+ return `assets/${id}-8-${orientation}.png`;
+}
+const gatoradeList=document.getElementById("gatoradeProducts");
+const gatoradeHint=document.createElement("p");gatoradeHint.className="gatorade-note";
+gatoradeHint.textContent="Select a flavor, then Add stack to place a 24-bottle case (3 × 8-packs).";
+gatoradeList.appendChild(gatoradeHint);
+const gatoradeButtons=new Map();
+const gatoradeProductSelect=document.getElementById("gatoradeProductSelect");
+GATORADE_PRODUCTS.forEach(p=>{const option=document.createElement("option");option.value=p.id;option.textContent=p.name;gatoradeProductSelect.appendChild(option);});
+let selectedGatorade=GATORADE_PRODUCTS[0].id;
+let activeCatalog="soda";
+for(const [heading,subset] of [
+ ["Gatorade",GATORADE_PRODUCTS.filter(p=>!p.id.startsWith("zero-"))],
+ ["Gatorade Zero",GATORADE_PRODUCTS.filter(p=>p.id.startsWith("zero-"))]
+]){
+ const group=document.createElement("details");group.className="product-group";group.open=true;
+ const summary=document.createElement("summary");summary.textContent=heading;
+ const items=document.createElement("div");items.className="product-group-items";
+ for(const p of subset){
+  const button=document.createElement("button");button.type="button";button.className="prod";
+  button.style.setProperty("--c",p.color);button.textContent=p.name;
+  button.title=`${gatoradeAsset(p.id,"long")} / ${gatoradeAsset(p.id,"short")}`;
+  button.onclick=()=>{selectedGatorade=p.id;gatoradeProductSelect.value=p.id;syncGatoradeButtons();if(selectedIndex>=0 && stacks[selectedIndex].packageType==="8"){stacks[selectedIndex].product=p.id;render();}};
+  items.appendChild(button);gatoradeButtons.set(p.id,button);
+ }
+ group.append(summary,items);gatoradeList.appendChild(group);
+}
+function syncGatoradeButtons(){gatoradeButtons.forEach((b,id)=>b.classList.toggle("active",id===selectedGatorade));}
+gatoradeProductSelect.onchange=()=>{selectedGatorade=gatoradeProductSelect.value;syncGatoradeButtons();if(selectedIndex>=0 && stacks[selectedIndex].packageType==="8"){stacks[selectedIndex].product=selectedGatorade;render();}};
+syncGatoradeButtons();
+function setCatalogTab(tab){
+ const isGatorade=tab==="gatorade";
+ activeCatalog=tab;
+ document.getElementById("products").hidden=isGatorade;
+ gatoradeList.hidden=!isGatorade;
+ document.getElementById("gatoradeSettings").hidden=!isGatorade;
+ document.getElementById("sodaSettings").hidden=isGatorade;
+ for(const [id,active] of [["sodaTab",!isGatorade],["gatoradeTab",isGatorade]]){
+  const btn=document.getElementById(id);btn.classList.toggle("active",active);btn.setAttribute("aria-pressed",String(active));
+ }
+}
+document.getElementById("sodaTab").onclick=()=>setCatalogTab("soda");
+document.getElementById("gatoradeTab").onclick=()=>setCatalogTab("gatorade");
 const STANDARD={long:{w:1515,h:471},short:{w:460,h:471}};
 const TWENTYFOUR={long:{w:2200,h:733},short:{w:1260,h:733}};
 const TWENTYFOUR_PRODUCTS=new Set(["diet-dr-pepper","diet-mtn-dew","diet-pepsi","dr-pepper","dr-pepper-zero","mtn-dew","mtn-dew-baja-blast","mtn-dew-zero","pepsi","pepsi-wild-cherry","pepsi-zero"]);
@@ -188,7 +257,8 @@ function missingBlackberryShort(){
  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
 function asset(id,o,pkg){
-  if(pkg==="6pk") return `assets/${id}-6pk-${o}.png`;
+  if(pkg==="8")return gatoradeAsset(id,o);
+   if(pkg==="6pk") return `assets/${id}-6pk-${o}.png`;
   if(pkg==="24") return `assets/${id}-24-${o}.png`;
   return `assets/${id}-12-${o}.png`;
 }
@@ -223,12 +293,36 @@ function controlsToObject(){
  mixedEnabled:$("mixedEnabled").checked,mixedFrontProduct:$("mixedFrontProduct").value,mixedFrontDepth:+$("mixedFrontDepth").value||2,stairStep:$("stairStep").checked,backStairStep:$("backStairStep").checked,backEnabled:$("backEnabled").checked,backPackageType:$("backPackageType").value,backProduct:$("backProduct").value||"mtn-dew",backFacings:+$("backFacings").value||1,backDepth:bdh.length,backDepthHeights:bdh,backOrientation:$("backOrientation").value};
 }
 function loadControls(s){
+ if(s.packageType==="8"){
+  setCatalogTab("gatorade");selectedGatorade=s.product;gatoradeProductSelect.value=s.product;
+  $("gatoradeOrientation").value=s.orientation||"long";
+  $("gatoradeHeight").value=s.stairStep?Math.max(...(s.depthHeights||[s.height||6])):(s.height||6);
+  $("gatoradeFacings").value=s.facings||1;
+  $("gatoradeDepth").value=s.depth||1;
+   $("gatoradeStairStep").checked=!!s.stairStep;
+  syncGatoradeButtons();return;
+ }
+ setCatalogTab("soda");
  $("packageType").value=s.packageType||"12";ps.value=s.product||"pepsi";let dh=s.depthHeights||Array(s.depth||1).fill(s.height||1);$("height").value=s.stairStep?Math.max(...dh):(dh[0]||s.height||1);$("facings").value=s.facings||1;$("depth").value=dh.length;$("depthHeights").value=dh.join(",");$("orientation").value=s.orientation||"long";$("caseHeight").value=s.caseHeight||38;$("stairStep").checked=!!s.stairStep;$("mixedEnabled").checked=!!s.mixedEnabled;$("mixedFrontProduct").value=s.mixedFrontProduct||"diet-pepsi";$("mixedFrontDepth").value=s.mixedFrontDepth||2;toggleMixedFields();
  $("backEnabled").checked=!!s.backEnabled;$("backPackageType").value=s.backPackageType||"12";$("backProduct").value=s.backProduct||s.product||"pepsi";$("backFacings").value=s.backFacings||1;let bdh=s.backDepthHeights||Array(s.backDepth||1).fill(11);$("backDepth").value=bdh.length;$("backDepthHeights").value=bdh.join(",");$("backOrientation").value=s.backOrientation||"short";$("backStairStep").checked=!!s.backStairStep;toggleBackFields();
  selectedProduct=(currentView==="back" ? (s.backProduct||"pepsi") : (s.product||"pepsi"));syncButtons();
 }
 function toggleMixedFields(){$("mixedFields").classList.toggle("disabled",!$("mixedEnabled").checked)}
 function toggleBackFields(){$("backFields").classList.toggle("disabled",!$("backEnabled").checked)}
+function gatoradeDepthHeights(height,depth,stairStep){
+ const h=Math.max(1,Math.min(15,+height||6)),d=Math.max(1,Math.min(8,+depth||1));
+ return Array.from({length:d},(_,i)=>stairStep?Math.max(1,h-(d-1-i)):h);
+}
+function addGatoradeStack(){
+ const prev=stacks[selectedIndex];
+ const s={frontEnabled:true,packageType:"8",product:selectedGatorade,
+  height:Math.max(1,+$("gatoradeHeight").value||6),facings:Math.max(1,+$("gatoradeFacings").value||1),
+  depth:Math.max(1,+$("gatoradeDepth").value||1),orientation:$("gatoradeOrientation").value,
+  caseHeight:prev?.caseHeight||38,backEnabled:false,stairStep:$("gatoradeStairStep").checked};
+ s.depthHeights=gatoradeDepthHeights(s.height,s.depth,s.stairStep);
+ const at=selectedIndex>=0?selectedIndex+1:stacks.length;
+ stacks.splice(at,0,s);selectedIndex=at;render();loadControls(s);
+}
 function addStack(){
  // A new front stack inherits the complete front geometry/settings from the
  // currently selected neighboring stack. Product follows the currently selected
@@ -283,6 +377,18 @@ function updateSelected(){
  render();
 }
 function caseMetrics(s,viewOrientation){
+ if(s.packageType==="8"){
+  // Physical case: long face = 3 short-side 8-pack assets; short face = 1 long-side asset.
+  // Both orientations have the same bottle height. Use a shared fixed geometry for testing.
+  const displayH=Math.round((s.caseHeight||38)*2.15);
+  const shortAssetW=Math.round(displayH*.68);
+  // Tighten Gatorade side-profile depth spacing without changing soda geometry.
+  // The -8-long PNG is 1774×887 with ~252px transparent padding on each side.
+  // Use the visible four-bottle width, not the padded image width.
+  const longAssetW=Math.round(displayH*(1270/887));
+  return {displayH,caseW:viewOrientation==="long"?shortAssetW*3:longAssetW};
+ }
+
  const pkg=s.packageType||"12";
  const pixelsPerInch=s.caseHeight/TWELVEPACK_HEIGHT_INCHES;
  const displayH = pkg==="6pk"
@@ -313,7 +419,39 @@ function makeStackElement(s,idx,viewOrientation,visibleColumns,productColumns){
    for(let y=0;y<heights[x];y++){
      const pkg=s.packageType||"12";
      const caseProduct=productColumns ? productColumns[x] : s.product;
-     if(pkg==="24"){
+     if(pkg==="8"){
+        // Filenames describe each individual 8-pack, not the 24-bottle case.
+        // Long CASE face = three 8-pack SHORT faces (2 bottles each) in a row.
+        // Short CASE face = one 8-pack LONG face (4 bottles across).
+        const caseBox=document.createElement("div");
+        caseBox.style.cssText=`display:flex;flex:0 0 auto;width:${caseW}px;height:${displayH}px;overflow:hidden`;
+        // The 8-pack long PNG has ~252px transparent padding on each side
+        // (1774x887 canvas, ~1270px visible product). Crop padding via the
+        // containing box; never squeeze the visible bottles.
+        if(viewOrientation==="short")caseBox.style.position="relative";
+        const pieces=viewOrientation==="long"?3:1;
+        const imageSide=viewOrientation==="long"?"short":"long";
+        for(let piece=0;piece<pieces;piece++){
+          const im=document.createElement("img");im.className="case";
+          im.src=gatoradeAsset(caseProduct,imageSide);
+          const imageW=viewOrientation==="short" ? displayH*(1774/887) : caseW/pieces;
+          im.style.width=imageW+"px";
+          im.style.height=displayH+"px";
+          if(viewOrientation==="short"){
+            im.style.position="absolute";
+            im.style.left=(-(imageW-caseW)/2)+"px";
+            im.style.top="0";
+            im.style.maxWidth="none";
+          }else{
+            im.style.flex="0 0 "+imageW+"px";
+          }
+          im.onerror=()=>{
+            im.style.outline="2px solid red";im.alt="missing: "+im.src;
+          };
+          caseBox.appendChild(im);
+        }
+        col.appendChild(caseBox);
+      }else if(pkg==="24"){
        // 24pk locked physical rule:
        // LONG face = exactly 1x the corresponding 12pk long face.
        // SHORT face = exactly 2x the corresponding 12pk short face.
@@ -687,7 +825,16 @@ function exportCompose(panels){
     setTimeout(()=>URL.revokeObjectURL(url),30000);
   };
 new ResizeObserver(fitBuild).observe($("build").parentElement);
-function renderCounts(){let totals={},grand=0;function add(pkg,prod,fac,hs){let n=hs.reduce((a,b)=>a+b,0)*fac,key=pkg+"|"+prod;totals[key]=(totals[key]||0)+n;grand+=n}stacks.forEach(s=>{if(s.frontEnabled!==false){const hs=s.depthHeights||[s.height];if(s.mixedEnabled){hs.forEach((h,i)=>add(s.packageType||"12",i<Math.min(hs.length,s.mixedFrontDepth||1)?s.mixedFrontProduct:s.product,s.facings,[h]))}else add(s.packageType||"12",s.product,s.facings,hs)}if(s.backEnabled){let b=backAsStack(s);add(b.packageType,b.product,b.facings,b.depthHeights)}});let h="<b>Case count</b>";PRODUCTS.forEach(p=>{["12","24","6pk"].forEach(pkg=>{let key=pkg+"|"+p.id;if(totals[key])h+=`<div class="countrow"><span>${p.name} ${pkg==="6pk"?"6pk":pkg==="24"?"24pk":"12pk"}</span><b>${totals[key]}</b></div>`})});h+=`<hr><div class="countrow"><b>Total</b><b>${grand}</b></div>`;$("counts").innerHTML=h}
+function renderCounts(){let totals={},grand=0;function add(pkg,prod,fac,hs){let n=hs.reduce((a,b)=>a+b,0)*fac,key=pkg+"|"+prod;totals[key]=(totals[key]||0)+n;grand+=n}stacks.forEach(s=>{if(s.frontEnabled!==false){const hs=s.depthHeights||[s.height];if(s.mixedEnabled){hs.forEach((h,i)=>add(s.packageType||"12",i<Math.min(hs.length,s.mixedFrontDepth||1)?s.mixedFrontProduct:s.product,s.facings,[h]))}else add(s.packageType||"12",s.product,s.facings,hs)}if(s.backEnabled){let b=backAsStack(s);add(b.packageType,b.product,b.facings,b.depthHeights)}});let h="<b>Case count</b>";[...PRODUCTS,...GATORADE_PRODUCTS].forEach(p=>{["12","24","6pk","8"].forEach(pkg=>{let key=pkg+"|"+p.id;if(totals[key])h+=`<div class="countrow"><span>${p.name} ${pkg==="8"?"8pk × 3":pkg==="6pk"?"6pk":pkg==="24"?"24pk":"12pk"}</span><b>${totals[key]}</b></div>`})});h+=`<hr><div class="countrow"><b>Total</b><b>${grand}</b></div>`;$("counts").innerHTML=h}
+["gatoradeOrientation","gatoradeHeight","gatoradeFacings","gatoradeDepth","gatoradeStairStep"].forEach(id=>$(id).addEventListener("change",()=>{
+ if(selectedIndex<0||stacks[selectedIndex].packageType!=="8")return;
+ const s=stacks[selectedIndex];s.orientation=$("gatoradeOrientation").value;
+ s.height=Math.max(1,+$("gatoradeHeight").value||6);
+ s.stairStep=$("gatoradeStairStep").checked;
+ s.facings=Math.max(1,+$("gatoradeFacings").value||1);
+ s.depth=Math.max(1,+$("gatoradeDepth").value||1);
+ s.depthHeights=gatoradeDepthHeights(s.height,s.depth,s.stairStep);render();
+}));
 $("mixedEnabled").onchange=()=>{toggleMixedFields();updateSelected()};
 ["mixedFrontProduct","mixedFrontDepth"].forEach(id=>$(id).onchange=updateSelected);
 ps.onchange=()=>{selectedProduct=ps.value;syncButtons();updateSelected()};
@@ -752,6 +899,7 @@ $("backDepthHeights").oninput=()=>{let vals=$("backDepthHeights").value.split(",
 $("backDepth").oninput=()=>{if($("backStairStep").checked){applyBackStair()}else{let vals=parseList("backDepthHeights","backDepth",11);$("backDepthHeights").value=vals.join(",")}updateBackSelected()};
 $("backStairStep").onchange=()=>{if($("backStairStep").checked)applyBackStair();updateBackSelected()};
 function addForCurrentView(){
+ if(activeCatalog==="gatorade"){addGatoradeStack();return;}
  if(currentView!=="back"){addStack();return;}
  // Backside camera reverses physical row order. Inserting BEFORE the selected
  // physical row places the new stack immediately to its RIGHT on screen.
@@ -893,5 +1041,5 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){
  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(reg=>{reg.update().catch(()=>{});navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!sessionStorage.getItem("display-builder-sw-reloaded")){sessionStorage.setItem("display-builder-sw-reloaded","1");location.reload();}});}).catch(()=>{}));
 }
 
-syncButtons();ps.value="pepsi";$("backProduct").value="pepsi";$("backOrientation").value="short";addStack();
+syncButtons();ps.value="pepsi";$("backProduct").value="pepsi";$("backOrientation").value="short";render();
 </script></body></html>
