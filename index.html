@@ -405,7 +405,7 @@ function caseMetrics(s,viewOrientation){
  if(pkg==="6pk"){
    return {displayH:Math.round(displayH*1.18),caseW:Math.round(caseW*0.85)};
  }
- return {displayH,caseW};
+ return {displayH,caseW:pkg==="24" && s.side24Width ? s.side24Width : caseW};
 }
 function makeStackElement(s,idx,viewOrientation,visibleColumns,productColumns){
  const {displayH,caseW}=caseMetrics(s,viewOrientation);
@@ -611,6 +611,27 @@ function render(){
      }
    });
 
+   // For a pallet made entirely of 24-packs, the side camera sees only
+   // the outside row. Keep front/back and all other package views unchanged.
+   const pure24Side=frontParts.length>0 && backParts.length===0 &&
+     frontParts.every(p=>p.s.packageType==="24" && !p.s.mixedEnabled);
+   if(pure24Side){
+     // Four short-side 24-packs equal three long-side 24-packs in depth.
+     // Side-only width overrides do not alter the front view.
+     const shortW=caseMetrics(frontParts[0].s,"short").caseW;
+     const sideW=ori=>ori==="short"?shortW:shortW*4/3;
+     const span=Math.max(...frontParts.map(p=>sideW(p.ori)*p.hs.length));
+     const visible=currentView==="left"?frontParts[0]:frontParts[frontParts.length-1];
+     const heights=visible.hs.slice();
+     if(currentView==="left")heights.reverse();
+     const el=makeStackElement({...visible.s,side24Width:sideW(visible.ori)},visible.idx,visible.ori,heights);
+     el.style.position="absolute";
+     el.style.left=(currentView==="left"?span-sideW(visible.ori)*heights.length:0)+"px";
+     el.style.bottom="0";
+     build.appendChild(el);
+     build.style.width=span+"px";
+     build.style.height=Math.max(1,...frontParts.map(p=>p.m.displayH*Math.max(...p.hs)))+"px";
+   }else{
    const totalSpan=Math.max(1,frontSpan+backSpan);
 
    // Side camera X ordering: LEFT sees facing 0 first; RIGHT sees the highest
@@ -680,6 +701,7 @@ function render(){
    build.appendChild(frontMark);build.appendChild(backMark);
    build.style.width=totalSpan+"px";
    build.style.height=Math.max(1,maxH)+"px";
+   }
  }
  fitBuild();
  renderCounts();
