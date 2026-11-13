@@ -747,17 +747,25 @@ const overheadImageCache=new Map();
 function croppedTopArtwork(img){
   const c=document.createElement("canvas");c.width=img.naturalWidth;c.height=img.naturalHeight;
   const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(img,0,0);
-  const {data,width:w,height:h}=g.getImageData(0,0,c.width,c.height);
-  const visible=(x,y)=>{
-    const i=(y*w+x)*4;
-    // Transparent margins and white image-canvas margins are not part of the box.
-    return data[i+3]>24 && !(data[i]>248&&data[i+1]>248&&data[i+2]>248);
-  };
-  let minX=w,minY=h,maxX=-1,maxY=-1;
+  const {data}=g.getImageData(0,0,c.width,c.height),w=c.width,h=c.height;
+  // Find the rectangular package, ignoring isolated specks, anti-aliasing,
+  // transparent padding, and near-white margins in exported artwork.
+  const cols=new Uint32Array(w),rows=new Uint32Array(h);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-    if(visible(x,y)){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
+    const i=(y*w+x)*4,r=data[i],gg=data[i+1],b=data[i+2],a=data[i+3];
+    if(a<80)continue;
+    if(r>242&&gg>242&&b>242)continue;
+    cols[x]++;rows[y]++;
   }
-  if(maxX<minX)return {img,sx:0,sy:0,sw:w,sh:h};
+  const xThreshold=Math.max(2,Math.floor(h*.035));
+  const yThreshold=Math.max(2,Math.floor(w*.035));
+  let minX=0,maxX=w-1,minY=0,maxY=h-1;
+  while(minX<maxX&&cols[minX]<xThreshold)minX++;
+  while(maxX>minX&&cols[maxX]<xThreshold)maxX--;
+  while(minY<maxY&&rows[minY]<yThreshold)minY++;
+  while(maxY>minY&&rows[maxY]<yThreshold)maxY--;
+  // Keep complete original art if the image has no identifiable package.
+  if(maxX-minX<w*.35||maxY-minY<h*.35)return {img,sx:0,sy:0,sw:w,sh:h};
   return {img,sx:minX,sy:minY,sw:maxX-minX+1,sh:maxY-minY+1};
 }
 function loadTop24(id){
@@ -775,8 +783,8 @@ async function exportCaptureOverhead(){
   const baseHeight=38;
   // Shared 24-pack footprint: four long-side-out cases in depth occupy
   // exactly the same distance as three short-side-out cases.
-  const overheadFace=orientation=>orientation==="long"?100:75;
-  const overheadDepth=orientation=>orientation==="long"?75:100;
+  const overheadFace=orientation=>orientation==="long"?120:90;
+  const overheadDepth=orientation=>orientation==="long"?90:120;
   for(const s of stacks){
     if(s.packageType==="24"&&s.frontEnabled!==false){
       const face=overheadFace(s.orientation);
@@ -843,8 +851,7 @@ async function exportCaptureOverhead(){
       ctx.textAlign="center";ctx.fillText(u.id,u.x+u.w/2,u.y+u.h/2);
     }
     ctx.restore();
-    ctx.strokeStyle="rgba(0,0,0,.25)";ctx.lineWidth=.7;
-    ctx.strokeRect(u.x+.35,u.y+.35,u.w-.7,u.h-.7);
+    // Cases meet edge-to-edge; avoid adding borders that look like gaps.
   }
   return canvas;
 }
