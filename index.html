@@ -88,7 +88,7 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 
 <div id="counts" class="counts"></div>
 </div></aside><div id="mobileScrim" class="mobile-scrim"></div></div>
-<div id="exportOverlay" class="export-overlay" hidden style="display:none" role="dialog" aria-modal="true" aria-label="Preview display image"><div class="export-dialog"><h3>Preview display</h3><p style="font-size:13px;color:#555">Select the views to include. The preview updates automatically; empty backside views are omitted.</p><div id="exportChoices"></div><div id="exportStatus" class="export-status" aria-live="polite"></div><div id="exportPreviewWrap" class="export-preview-wrap"><img id="exportPreviewImage" alt="Preview of the combined display views" hidden></div><div class="export-actions"><button id="exportZoom" type="button">Zoom in</button><button id="exportCopy" type="button" disabled>Copy image</button><button id="exportShare" type="button" hidden disabled>Share / Save</button><button id="exportCancel" type="button">Close Preview</button><button id="exportDownload" class="primary" type="button" disabled>Save PNG</button></div></div></div>
+<div id="exportOverlay" class="export-overlay" hidden style="display:none" role="dialog" aria-modal="true" aria-label="Preview display image"><div class="export-dialog"><h3>Preview display</h3><p style="font-size:13px;color:#555">Select the views to include. The preview updates automatically. Overhead uses 24-pack top artwork from the assets folder.</p><div id="exportChoices"></div><div id="exportStatus" class="export-status" aria-live="polite"></div><div id="exportPreviewWrap" class="export-preview-wrap"><img id="exportPreviewImage" alt="Preview of the combined display views" hidden></div><div class="export-actions"><button id="exportZoom" type="button">Zoom in</button><button id="exportCopy" type="button" disabled>Copy image</button><button id="exportShare" type="button" hidden disabled>Share / Save</button><button id="exportCancel" type="button">Close Preview</button><button id="exportDownload" class="primary" type="button" disabled>Save PNG</button></div></div></div>
 <script>
 const PRODUCTS=[
 {id:"pepsi",name:"Pepsi",color:"#1261c9"},{id:"diet-pepsi",name:"Diet Pepsi",color:"#bbb"},
@@ -708,8 +708,8 @@ function render(){
 }
 
  // Four-view PNG export: render the existing geometry, not an AI approximation.
- const EXPORT_VIEWS=[{id:"front",title:"Front side",btn:"frontBtn"},{id:"right",title:"Right side",btn:"rightBtn"},{id:"back",title:"Backside",btn:"backBtn"},{id:"left",title:"Left side",btn:"leftBtn"}];
- function hasViewContent(id){return id==="back"?stacks.some(s=>s.backEnabled):id==="front"?stacks.some(s=>s.frontEnabled!==false):stacks.some(s=>s.frontEnabled!==false||s.backEnabled)}
+ const EXPORT_VIEWS=[{id:"overhead",title:"Overhead (24-packs)"},{id:"front",title:"Front side",btn:"frontBtn"},{id:"right",title:"Right side",btn:"rightBtn"},{id:"back",title:"Backside",btn:"backBtn"},{id:"left",title:"Left side",btn:"leftBtn"}];
+ function hasViewContent(id){return id==="overhead"?stacks.some(s=>s.packageType==="24"||s.backEnabled&&s.backPackageType==="24"):id==="back"?stacks.some(s=>s.backEnabled):id==="front"?stacks.some(s=>s.frontEnabled!==false):stacks.some(s=>s.frontEnabled!==false||s.backEnabled)}
    let previewBlob=null, previewUrl=null, previewSequence=0, previewBusy=false;
   function clearPreviewUrl(){if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null;}}
   function closePreview(){previewSequence++;$("exportOverlay").hidden=true;$("exportOverlay").style.display="none";clearPreviewUrl();previewBlob=null;$("exportPreviewImage").hidden=true;$("exportPreviewImage").removeAttribute("src");$("exportDownload").disabled=true;$("exportCopy").disabled=true;$("exportShare").disabled=true;}
@@ -739,7 +739,96 @@ function exportWaitForImages(images){return Promise.all(images.map(im=>{
 // Capture each package directly from its original asset, at 3x the layout
 // resolution. Browser zoom and the stage's CSS transform do not affect quality.
 const EXPORT_DETAIL=3;
+
+// Top artwork is a single transparent PNG per 24-pack flavor. The app
+// rotates the same file 90 degrees when a case is short-side out.
+function top24Asset(id){return `assets/${id}-24-top.png`;}
+const overheadImageCache=new Map();
+function loadTop24(id){
+  if(!overheadImageCache.has(id)){
+    overheadImageCache.set(id,new Promise(resolve=>{
+      const img=new Image();img.onload=()=>resolve(img);
+      img.onerror=()=>resolve(null);img.src=top24Asset(id);
+    }));
+  }
+  return overheadImageCache.get(id);
+}
+async function exportCaptureOverhead(){
+  const units=[];
+  let x=0,frontDepth=0,backDepth=0;
+  const baseHeight=38;
+  for(const s of stacks){
+    if(s.packageType==="24"&&s.frontEnabled!==false){
+      const face=caseMetrics({...s,caseHeight:baseHeight},s.orientation).caseW;
+      const deep=caseMetrics({...s,caseHeight:baseHeight},s.orientation==="long"?"short":"long").caseW;
+      const hs=s.depthHeights||[s.height||1];
+      for(let f=0;f<(s.facings||1);f++){
+        for(let d=0;d<hs.length;d++){
+          const id=s.mixedEnabled&&d<(s.mixedFrontDepth||1)?s.mixedFrontProduct:s.product;
+          units.push({x:x+f*face,y:d*deep,w:face,h:deep,id,orientation:s.orientation,section:"front"});
+        }
+      }
+      frontDepth=Math.max(frontDepth,hs.length*deep);
+      x+=(s.facings||1)*face;
+    }else if(s.frontEnabled!==false){
+      // Preserve the horizontal footprint of non-24-pack stacks.
+      x+=(s.facings||1)*caseMetrics({...s,caseHeight:baseHeight},s.orientation).caseW;
+    }
+  }
+  // Back sections share the same left/right physical rows and extend from
+  // the far end of the front section, rather than forming another row.
+  let rowX=0;
+  for(const s of stacks){
+    const frontWidth=(s.facings||1)*caseMetrics({...s,caseHeight:baseHeight},s.orientation).caseW;
+    if(s.backEnabled&&s.backPackageType==="24"){
+      const b=backAsStack(s);
+      const face=caseMetrics({...b,caseHeight:baseHeight},b.orientation).caseW;
+      const deep=caseMetrics({...b,caseHeight:baseHeight},b.orientation==="long"?"short":"long").caseW;
+      const hs=b.depthHeights||[b.height||1];
+      for(let f=0;f<(b.facings||1);f++){
+        for(let d=0;d<hs.length;d++){
+          units.push({x:rowX+f*face,y:frontDepth+d*deep,w:face,h:deep,id:b.product,orientation:b.orientation,section:"back"});
+        }
+      }
+      backDepth=Math.max(backDepth,hs.length*deep);
+    }
+    rowX+=frontWidth;
+  }
+  if(!units.length)throw new Error("Add at least one 24-pack to use the overhead preview.");
+  const maxX=Math.max(...units.map(u=>u.x+u.w));
+  const maxY=Math.max(...units.map(u=>u.y+u.h));
+  const scale=EXPORT_DETAIL;
+  const canvas=document.createElement("canvas");
+  canvas.width=Math.max(1,Math.ceil(maxX*scale));
+  canvas.height=Math.max(1,Math.ceil(maxY*scale));
+  const ctx=canvas.getContext("2d");
+  ctx.scale(scale,scale);ctx.imageSmoothingQuality="high";
+  const imgs=new Map(await Promise.all([...new Set(units.map(u=>u.id))].map(async id=>[id,await loadTop24(id)])));
+  for(const u of units){
+    const img=imgs.get(u.id);
+    ctx.save();
+    ctx.beginPath();ctx.rect(u.x,u.y,u.w,u.h);ctx.clip();
+    if(img){
+      // Source art is landscape (long dimension horizontal). Rotate 90° for
+      // a short-facing 24-pack; no second asset is needed.
+      if(u.orientation==="short"){
+        ctx.translate(u.x+u.w,u.y);
+        ctx.rotate(Math.PI/2);
+        ctx.drawImage(img,0,0,u.h,u.w);
+      }else ctx.drawImage(img,u.x,u.y,u.w,u.h);
+    }else{
+      ctx.fillStyle="#e9edf3";ctx.fillRect(u.x,u.y,u.w,u.h);
+      ctx.fillStyle="#333";ctx.font="bold 10px Arial";
+      ctx.textAlign="center";ctx.fillText(u.id,u.x+u.w/2,u.y+u.h/2);
+    }
+    ctx.restore();
+    ctx.strokeStyle="rgba(0,0,0,.25)";ctx.lineWidth=.7;
+    ctx.strokeRect(u.x+.35,u.y+.35,u.w-.7,u.h-.7);
+  }
+  return canvas;
+}
 async function exportCaptureView(view){
+  if(view==="overhead")return exportCaptureOverhead();
   currentView=view;render();
   const build=$("build");
   await exportWaitForImages([...build.querySelectorAll("img")]);
@@ -780,7 +869,7 @@ function exportCompose(panels){
     ctx.fillText(p.title,x,y+pad+44);
     const imageY=y+pad+labelH;
     ctx.drawImage(p.canvas,x,imageY);
-    ctx.fillStyle="#c89951";ctx.fillRect(x-10,imageY+p.canvas.height,p.canvas.width+20,floorH);
+    if(p.id!=="overhead"){ctx.fillStyle="#c89951";ctx.fillRect(x-10,imageY+p.canvas.height,p.canvas.width+20,floorH);}
     if(p.id==="left"||p.id==="right"){
       ctx.font="bold 24px Arial, sans-serif";ctx.fillStyle="#333";
       ctx.fillText(p.id==="left"?"BACK":"FRONT",x,imageY+p.canvas.height+floorH+28);
@@ -818,7 +907,7 @@ function exportCompose(panels){
     }catch(err){console.error(err);if(sequence===previewSequence)$("exportStatus").textContent="Preview failed: "+err.message;}
     finally{
       currentView=oldView;selectedIndex=oldIndex;
-      $("viewTitle").textContent=EXPORT_VIEWS.find(v=>v.id===oldView).title;
+      $("viewTitle").textContent=(EXPORT_VIEWS.find(v=>v.id===oldView)||EXPORT_VIEWS[1]).title;
       EXPORT_VIEWS.forEach(v=>$(v.btn).classList.toggle("active",v.id===oldView));
       render();previewBusy=false;
       if(sequence!==previewSequence && !$("exportOverlay").hidden)requestPreview();
