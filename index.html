@@ -744,10 +744,26 @@ const EXPORT_DETAIL=3;
 // rotates the same file 90 degrees when a case is short-side out.
 function top24Asset(id){return `assets/${id}-24-top.png`;}
 const overheadImageCache=new Map();
+function croppedTopArtwork(img){
+  const c=document.createElement("canvas");c.width=img.naturalWidth;c.height=img.naturalHeight;
+  const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(img,0,0);
+  const {data,width:w,height:h}=g.getImageData(0,0,c.width,c.height);
+  const visible=(x,y)=>{
+    const i=(y*w+x)*4;
+    // Transparent margins and white image-canvas margins are not part of the box.
+    return data[i+3]>24 && !(data[i]>248&&data[i+1]>248&&data[i+2]>248);
+  };
+  let minX=w,minY=h,maxX=-1,maxY=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    if(visible(x,y)){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
+  }
+  if(maxX<minX)return {img,sx:0,sy:0,sw:w,sh:h};
+  return {img,sx:minX,sy:minY,sw:maxX-minX+1,sh:maxY-minY+1};
+}
 function loadTop24(id){
   if(!overheadImageCache.has(id)){
     overheadImageCache.set(id,new Promise(resolve=>{
-      const img=new Image();img.onload=()=>resolve(img);
+      const img=new Image();img.onload=()=>resolve(croppedTopArtwork(img));
       img.onerror=()=>resolve(null);img.src=top24Asset(id);
     }));
   }
@@ -757,10 +773,14 @@ async function exportCaptureOverhead(){
   const units=[];
   let x=0,frontDepth=0,backDepth=0;
   const baseHeight=38;
+  // Shared 24-pack footprint: four long-side-out cases in depth occupy
+  // exactly the same distance as three short-side-out cases.
+  const overheadFace=orientation=>orientation==="long"?100:75;
+  const overheadDepth=orientation=>orientation==="long"?75:100;
   for(const s of stacks){
     if(s.packageType==="24"&&s.frontEnabled!==false){
-      const face=caseMetrics({...s,caseHeight:baseHeight},s.orientation).caseW;
-      const deep=caseMetrics({...s,caseHeight:baseHeight},s.orientation==="long"?"short":"long").caseW;
+      const face=overheadFace(s.orientation);
+      const deep=overheadDepth(s.orientation);
       const hs=s.depthHeights||[s.height||1];
       for(let f=0;f<(s.facings||1);f++){
         for(let d=0;d<hs.length;d++){
@@ -779,11 +799,11 @@ async function exportCaptureOverhead(){
   // the far end of the front section, rather than forming another row.
   let rowX=0;
   for(const s of stacks){
-    const frontWidth=(s.facings||1)*caseMetrics({...s,caseHeight:baseHeight},s.orientation).caseW;
+    const frontWidth=(s.facings||1)*(s.packageType==="24"?overheadFace(s.orientation):caseMetrics({...s,caseHeight:baseHeight},s.orientation).caseW);
     if(s.backEnabled&&s.backPackageType==="24"){
       const b=backAsStack(s);
-      const face=caseMetrics({...b,caseHeight:baseHeight},b.orientation).caseW;
-      const deep=caseMetrics({...b,caseHeight:baseHeight},b.orientation==="long"?"short":"long").caseW;
+      const face=overheadFace(b.orientation);
+      const deep=overheadDepth(b.orientation);
       const hs=b.depthHeights||[b.height||1];
       for(let f=0;f<(b.facings||1);f++){
         for(let d=0;d<hs.length;d++){
@@ -805,17 +825,18 @@ async function exportCaptureOverhead(){
   ctx.scale(scale,scale);ctx.imageSmoothingQuality="high";
   const imgs=new Map(await Promise.all([...new Set(units.map(u=>u.id))].map(async id=>[id,await loadTop24(id)])));
   for(const u of units){
-    const img=imgs.get(u.id);
+    const art=imgs.get(u.id);
     ctx.save();
     ctx.beginPath();ctx.rect(u.x,u.y,u.w,u.h);ctx.clip();
-    if(img){
-      // Source art is landscape (long dimension horizontal). Rotate 90° for
-      // a short-facing 24-pack; no second asset is needed.
+    if(art){
+      // Crop the PNG canvas padding first, then fill the exact physical case
+      // footprint. Rotate the single top image for short-side-out cases.
+      const {img,sx,sy,sw,sh}=art;
       if(u.orientation==="short"){
         ctx.translate(u.x+u.w,u.y);
         ctx.rotate(Math.PI/2);
-        ctx.drawImage(img,0,0,u.h,u.w);
-      }else ctx.drawImage(img,u.x,u.y,u.w,u.h);
+        ctx.drawImage(img,sx,sy,sw,sh,0,0,u.h,u.w);
+      }else ctx.drawImage(img,sx,sy,sw,sh,u.x,u.y,u.w,u.h);
     }else{
       ctx.fillStyle="#e9edf3";ctx.fillRect(u.x,u.y,u.w,u.h);
       ctx.fillStyle="#333";ctx.font="bold 10px Arial";
