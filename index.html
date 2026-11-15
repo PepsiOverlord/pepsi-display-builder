@@ -733,8 +733,17 @@ function render(){
     $("exportPreviewImage").style.width=zoom?"auto":"100%";
   };
 function exportWaitForImages(images){return Promise.all(images.map(im=>{
-  if(im.complete && im.naturalWidth>0)return Promise.resolve();
-  return new Promise(resolve=>{im.addEventListener("load",resolve,{once:true});im.addEventListener("error",resolve,{once:true});});
+  // A failed image can be complete with naturalWidth === 0. Waiting for another
+  // load/error event in that state hangs every subsequent preview.
+  if(im.complete)return Promise.resolve();
+  return new Promise(resolve=>{
+    let timeout;
+    const finish=()=>{clearTimeout(timeout);im.removeEventListener("load",finish);im.removeEventListener("error",finish);resolve();};
+    im.addEventListener("load",finish,{once:true});
+    im.addEventListener("error",finish,{once:true});
+    timeout=setTimeout(finish,8000);
+    if(im.complete)finish();
+  });
 }));}
 // Capture each package directly from its original asset, at 3x the layout
 // resolution. Browser zoom and the stage's CSS transform do not affect quality.
@@ -912,12 +921,12 @@ function exportCompose(panels){
    async function requestPreview(){
     const sequence=++previewSequence;
     const ids=[...$("exportChoices").querySelectorAll("input:checked")].map(cb=>cb.value);
-    if(!ids.length){$("exportStatus").textContent="Select at least one view.";$("exportDownload").disabled=true;return;}
+    if(!ids.length){$("exportStatus").textContent="Select at least one view.";$("exportDownload").disabled=true;$("exportCopy").disabled=true;$("exportShare").disabled=true;$("exportPreviewImage").hidden=true;return;}
     // Keep DOM view rendering serialized to avoid changing the user's live view mid-capture.
     if(previewBusy)return;
     previewBusy=true;
     const oldView=currentView,oldIndex=selectedIndex;
-    $("exportDownload").disabled=true;$("exportCopy").disabled=true;$("exportShare").disabled=true;$("exportStatus").textContent="Rendering full-resolution image…";
+    $("exportDownload").disabled=true;$("exportCopy").disabled=true;$("exportShare").disabled=true;$("exportPreviewImage").hidden=true;$("exportStatus").textContent="Rendering full-resolution image…";
     try{
       const panels=[];
       for(const v of EXPORT_VIEWS.filter(v=>ids.includes(v.id))){
@@ -936,7 +945,7 @@ function exportCompose(panels){
     finally{
       currentView=oldView;selectedIndex=oldIndex;
       $("viewTitle").textContent=(EXPORT_VIEWS.find(v=>v.id===oldView)||EXPORT_VIEWS[1]).title;
-      EXPORT_VIEWS.forEach(v=>$(v.btn).classList.toggle("active",v.id===oldView));
+      EXPORT_VIEWS.forEach(v=>{if(v.btn)$(v.btn).classList.toggle("active",v.id===oldView);});
       render();previewBusy=false;
       if(sequence!==previewSequence && !$("exportOverlay").hidden)requestPreview();
     }
