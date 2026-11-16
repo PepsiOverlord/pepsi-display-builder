@@ -125,6 +125,7 @@ const PRODUCTS=[
  {id:"crush-zero-orange",name:"Crush Zero Sugar Orange",color:"#007c69"},
  {id:"starry",name:"Starry",color:"#24c92d"},
  {id:"starry-zero",name:"Starry Zero Sugar",color:"#85ba49"},
+ {id:"brisk",name:"Brisk Lemon Iced Tea",color:"#e6cf16"},
  {id:"pepsi-lto",name:"Pepsi LTO",color:"#1261c9"},
  {id:"mtn-dew-lto",name:"Mtn Dew LTO",color:"#48bd21"},
  {id:"dr-pepper-lto",name:"Dr Pepper LTO",color:"#a31327"},
@@ -213,6 +214,7 @@ const PRODUCT_GROUPS=[
  {name:"Mug",matches:p=>p.id==="mug"||p.id==="mug-zero"},
  {name:"Crush",matches:p=>p.id.startsWith("crush-") && !p.id.endsWith("-lto")},
  {name:"Starry",matches:p=>p.id==="starry"||p.id==="starry-zero"},
+ {name:"Brisk",matches:p=>p.id==="brisk"},
  {name:"LTO",matches:p=>p.id.endsWith("-lto")},
  {name:"Coca-Cola",matches:p=>p.id==="coke"},
  {name:"7UP",matches:p=>p.id==="7up"}
@@ -249,7 +251,7 @@ PRODUCTS.forEach(p=>{
  const o=document.createElement("option");o.value=p.id;o.textContent=p.name;ps.appendChild(o);
  const bo=document.createElement("option");bo.value=p.id;bo.textContent=p.name;$("backProduct").appendChild(bo);
 });
-const TWELVE_PRODUCTS=new Set(["7up","caffeine-free-diet-pepsi","caffeine-free-pepsi","coke","diet-dr-pepper","diet-mtn-dew","diet-pepsi","dr-pepper","dr-pepper-blackberry","dr-pepper-cherry","dr-pepper-cream-soda","dr-pepper-strawberries-&-cream","dr-pepper-zero","dr-pepper-zero-cherry","dr-pepper-zero-cream-soda","dr-pepper-zero-strawberries-&-cream","mtn-dew","mtn-dew-baja-blast","mtn-dew-code-red","mtn-dew-dirty","mtn-dew-voltage","mtn-dew-zero","mtn-dew-zero-baja-blast","mtn-dew-zero-code-red","pepsi","pepsi-real-sugar","pepsi-wild-cherry","pepsi-zero","pepsi-zero-wild-cherry","mug","mug-zero","crush-orange","crush-grape","crush-zero-orange","starry","starry-zero","pepsi-lto","mtn-dew-lto","dr-pepper-lto","crush-lto"]);
+const TWELVE_PRODUCTS=new Set(["7up","caffeine-free-diet-pepsi","caffeine-free-pepsi","coke","diet-dr-pepper","diet-mtn-dew","diet-pepsi","dr-pepper","dr-pepper-blackberry","dr-pepper-cherry","dr-pepper-cream-soda","dr-pepper-strawberries-&-cream","dr-pepper-zero","dr-pepper-zero-cherry","dr-pepper-zero-cream-soda","dr-pepper-zero-strawberries-&-cream","mtn-dew","mtn-dew-baja-blast","mtn-dew-code-red","mtn-dew-dirty","mtn-dew-voltage","mtn-dew-zero","mtn-dew-zero-baja-blast","mtn-dew-zero-code-red","pepsi","pepsi-real-sugar","pepsi-wild-cherry","pepsi-zero","pepsi-zero-wild-cherry","mug","mug-zero","crush-orange","crush-grape","crush-zero-orange","starry","starry-zero","pepsi-lto","mtn-dew-lto","dr-pepper-lto","crush-lto","brisk"]);
 function availableForPackage(id,pkg){
  if(pkg==="6pk")return SIXPK_PRODUCTS.has(id);
  if(pkg==="24")return TWENTYFOUR_PRODUCTS.has(id);
