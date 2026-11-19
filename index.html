@@ -52,7 +52,7 @@ h2{font-size:16px;margin:0 0 3px}.sub{font-size:10px;color:#666;margin-bottom:14
 </style></head>
 <body><div class="app">
 <aside class="left"><h2>Display Builder</h2><div class="sub">12-pack + 24-pack + 6-pack shell assets</div><div class="catalog-tabs"><button type="button" id="sodaTab" class="catalog-tab active" aria-pressed="true">Soda</button><button type="button" id="gatoradeTab" class="catalog-tab" aria-pressed="false">Gatorade</button></div><div id="products" class="soda-list"></div><div id="gatoradeProducts" class="gatorade-list" hidden></div></aside>
-<main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="exportBtn">Preview Display</button><button id="libraryBtn" type="button">Display Library ▾</button><label class="zoom-tools">Display zoom <input id="displayZoom" type="range" min="100" max="250" step="10" value="100"><output id="displayZoomValue">100%</output></label><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
+<main class="main"><div class="toolbar"><button id="mobileProductsBtn" class="mobile-only">PRODUCTS</button><button id="frontBtn" class="active">FRONT SIDE</button><button id="leftBtn">LEFT SIDE</button><button id="rightBtn">RIGHT SIDE</button><button id="backBtn">BACKSIDE</button><button id="addBtn">+ Add stack</button><button id="reverseFlowBtn" type="button" title="Reverse front and backside stack order">⇄ Reverse Flow</button><button id="deleteTopBtn">Delete selected</button><button id="clearBtn">Clear</button><button id="exportBtn">Preview Display</button><button id="libraryBtn" type="button">Display Library ▾</button><label class="zoom-tools">Display zoom <input id="displayZoom" type="range" min="100" max="250" step="10" value="100"><output id="displayZoomValue">100%</output></label><button id="mobileSettingsBtn" class="mobile-only">SETTINGS</button></div>
 <div class="stage" id="displayStage"><div class="stage-content" id="stageContent"><div class="stage-title" id="viewTitle">Front view</div><div id="build" class="build"></div><div class="floor"></div></div></div></main>
 <aside class="right"><div id="gatoradeSettings" hidden>
 <h3>Gatorade stack settings</h3>
@@ -1094,6 +1094,16 @@ function deleteSelected(){
  if(selectedIndex>=0)loadControls(stacks[selectedIndex]);
  render();
 }
+// Reverse the physical left-to-right order of entire rows. Attached backside
+// configurations travel with their front row, preserving all stack settings.
+$("reverseFlowBtn").onclick=()=>{
+ if(stacks.length<2)return;
+ const oldIndex=selectedIndex;
+ stacks.reverse();
+ if(oldIndex>=0)selectedIndex=stacks.length-1-oldIndex;
+ if(selectedIndex>=0)loadControls(stacks[selectedIndex]);
+ render();
+};
 $("addBtn").onclick=addForCurrentView;$("clearBtn").onclick=()=>{stacks=[];selectedIndex=-1;render()};
 $("deleteBtn").onclick=deleteSelected;$("deleteTopBtn").onclick=deleteSelected;
 function setView(view,title,btnId){
