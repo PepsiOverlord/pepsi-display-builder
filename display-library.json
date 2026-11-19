@@ -2,6 +2,191 @@
   "version": 1,
   "templates": [
     {
+      "name": "12pk endcap (9 facings)",
+      "stacks": [
+        {
+          "frontEnabled": true,
+          "packageType": "12",
+          "product": "pepsi",
+          "height": 11,
+          "facings": 1,
+          "depth": 2,
+          "depthHeights": [
+            11,
+            11
+          ],
+          "orientation": "short",
+          "caseHeight": 38,
+          "mixedEnabled": false,
+          "mixedFrontProduct": "pepsi",
+          "mixedFrontDepth": 2,
+          "stairStep": false,
+          "backStairStep": false,
+          "backEnabled": false,
+          "backPackageType": "12",
+          "backProduct": "pepsi",
+          "backFacings": 1,
+          "backDepth": 1,
+          "backDepthHeights": [
+            11
+          ],
+          "backOrientation": "short"
+        },
+        {
+          "frontEnabled": true,
+          "packageType": "12",
+          "product": "diet-pepsi",
+          "height": 11,
+          "facings": 1,
+          "depth": 2,
+          "depthHeights": [
+            11,
+            11
+          ],
+          "orientation": "short",
+          "caseHeight": 38,
+          "stairStep": false,
+          "mixedEnabled": false,
+          "mixedFrontProduct": "pepsi",
+          "mixedFrontDepth": 2,
+          "backEnabled": false
+        },
+        {
+          "frontEnabled": true,
+          "packageType": "12",
+          "product": "pepsi-zero",
+          "height": 11,
+          "facings": 1,
+          "depth": 2,
+          "depthHeights": [
+            11,
+            11
+          ],
+          "orientation": "short",
+          "caseHeight": 38,
+          "stairStep": false,
+          "mixedEnabled": false,
+          "mixedFrontProduct": "pepsi",
+          "mixedFrontDepth": 2,
+          "backEnabled": false
+        },
+        {
+          "frontEnabled": true,
+          "packageType": "12",
+          "product": "mtn-dew",
+          "height": 11,
+          "facings": 1,
+          "depth": 2,
+          "depthHeights": [
+            11,
+            11
+          ],
+          "orientation": "short",
+          "caseHeight": 38,
+          "stairStep": false,
+          "mixedEnabled": false,
+          "mixedFrontProduct": "pepsi",
+          "mixedFrontDepth": 2,
+          "backEnabled": false
+        },
+        {
+          "frontEnabled": true,
+          "packageType": "12",
+          "product": "diet-mtn-dew",
+          "height": 11,
+          "facings": 1,
+          "depth": 2,
+          "depthHeights": [
+            11,
+            11
+          ],
+          "orientation": "short",
+          "caseHeight": 38,
+          "stairStep": false,
+          "mixedEnabled": false,
+          "mixedFrontProduct": "pepsi",
+          "mixedFrontDepth": 2,
+          "backEnabled": false
+        },
+        {
+          "frontEnabled": true,
+          "packageType": "12",
+          "product": "mtn-dew-baja-blast",
+          "height": 11,
+          "facings": 1,
+          "depth": 2,
+          "depthHeights": [
+            11,
+            11
+          ],
+          "orientation": "short",
+          "caseHeight": 38,
+          "stairStep": false,
+          "mixedEnabled": false,
+          "mixedFrontProduct": "pepsi",
+          "mixedFrontDepth": 2,
+          "backEnabled": false
+        },
+        {
+          "frontEnabled": true,
+          "packageType": "12",
+          "product": "dr-pepper",
+          "height": 11,
+          "facings": 1,
+          "depth": 2,
+          "depthHeights": [
+            11,
+            11
+          ],
+          "orientation": "short",
+          "caseHeight": 38,
+          "stairStep": false,
+          "mixedEnabled": false,
+          "mixedFrontProduct": "pepsi",
+          "mixedFrontDepth": 2,
+          "backEnabled": false
+        },
+        {
+          "frontEnabled": true,
+          "packageType": "12",
+          "product": "diet-dr-pepper",
+          "height": 11,
+          "facings": 1,
+          "depth": 2,
+          "depthHeights": [
+            11,
+            11
+          ],
+          "orientation": "short",
+          "caseHeight": 38,
+          "stairStep": false,
+          "mixedEnabled": false,
+          "mixedFrontProduct": "pepsi",
+          "mixedFrontDepth": 2,
+          "backEnabled": false
+        },
+        {
+          "frontEnabled": true,
+          "packageType": "12",
+          "product": "dr-pepper-zero",
+          "height": 11,
+          "facings": 1,
+          "depth": 2,
+          "depthHeights": [
+            11,
+            11
+          ],
+          "orientation": "short",
+          "caseHeight": 38,
+          "stairStep": false,
+          "mixedEnabled": false,
+          "mixedFrontProduct": "pepsi",
+          "mixedFrontDepth": 2,
+          "backEnabled": false
+        }
+      ]
+    },
+    {
       "name": "Waterfall 12pk (6 facings)",
       "stacks": [
         {
